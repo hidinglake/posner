@@ -1,0 +1,3262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aPOSNER Training Tool</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --panel: #171b2e;
+      --panel-2: #1f2440;
+      --text: #edf1ff;
+      --muted: #aab3d3;
+      --accent: #7c8cff;
+      --accent-2: #37d2a2;
+      --danger: #ff6b6b;
+      --warn: #ffcc66;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(124,140,255,.16), transparent 45%),
+        radial-gradient(900px 500px at 90% 15%, rgba(55,210,162,.12), transparent 40%),
+        linear-gradient(180deg, #0b0e18 0%, #101429 100%);
+      color: var(--text);
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body[data-theme="dark"] {
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(255,255,255,.05), transparent 45%),
+        radial-gradient(900px 500px at 90% 15%, rgba(124,140,255,.12), transparent 40%),
+        linear-gradient(180deg, #05070d 0%, #0a0f18 100%);
+    }
+
+    body[data-theme="cyan"] {
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(0,224,255,.16), transparent 45%),
+        radial-gradient(900px 500px at 90% 15%, rgba(0,255,170,.10), transparent 40%),
+        linear-gradient(180deg, #06131a 0%, #091a22 100%);
+    }
+
+    button, select, input { font: inherit; }
+    .hidden { display: none !important; }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .gear-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+    .gear-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.13); }
+
+    .progress-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+    .progress-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.13); }
+    .status-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .progress-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(470px, 94vw);
+      height: 100%;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -18px 0 60px rgba(0,0,0,.35);
+      transform: translateX(102%);
+      transition: transform .26s ease;
+      z-index: 40;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .progress-panel.open { transform: translateX(0); }
+    .progress-head {
+      padding: 18px 18px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .progress-head h2 { margin: 0; font-size: 1.05rem; letter-spacing: .03em; }
+    .progress-body {
+      padding: 16px 18px;
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+    .progress-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .progress-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .progress-card .label {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .progress-card .value {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+    .progress-section-title {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: .74rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .progress-foot {
+      padding: 14px 18px 18px;
+      border-top: 1px solid var(--border);
+      display: grid;
+      gap: 10px;
+    }
+
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .title-wrap p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.2;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .stat-chip {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 8px 12px;
+      min-width: 82px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+    .stat-chip .label {
+      display: block;
+      color: var(--muted);
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .stat-chip .value {
+      display: block;
+      margin-top: 2px;
+      font-size: .95rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .main {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+    .stage {
+      width: min(860px, 100%);
+      min-height: min(720px, 100%);
+      height: min(720px, 100%);
+      border-radius: 26px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto auto auto auto 1fr;
+      gap: 12px;
+      --cue-h: clamp(104px, 18vh, 160px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .84rem;
+      min-height: 22px;
+    }
+
+    .control-panel {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      opacity: .45; transition: opacity .2s ease;
+    }
+    .control-panel:hover, .control-panel:focus-within { opacity: 1; }
+    .level-picker { display: flex; align-items: center; gap: 6px; }
+    @media (max-width: 600px) {
+      .level-picker { flex-wrap: wrap; min-width: 0; }
+      .level-btn { width: 20px; }
+      .session-buttons { flex-wrap: wrap; row-gap: 6px; }
+      .limit-toggle { margin-left: 0; }
+      #levelReadout { min-width: 0; }
+    }
+    .level-head, #levelReadout { color: var(--muted); font-size: .7rem; letter-spacing: .06em; white-space: nowrap; }
+    .level-head { text-transform: uppercase; }
+    #levelReadout { min-width: 64px; text-align: right; }
+    .level-buttons { display: flex; gap: 3px; }
+    .level-btn {
+      border: 1px solid var(--border, rgba(255,255,255,.12));
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      border-radius: 6px;
+      width: 24px; height: 22px; padding: 0;
+      font-size: .7rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .level-btn:hover { background: rgba(255,255,255,.12); color: var(--text); }
+    .level-btn.active { background: var(--accent, #7c8cff); color: #fff; border-color: transparent; }
+    .session-buttons { display: flex; gap: 6px; }
+    .session-btn {
+      border: 0; border-radius: 8px; height: 26px; padding: 0 14px;
+      font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+      color: #fff; cursor: pointer;
+    }
+    .session-btn.start { background: #1f9d58; }
+    .session-btn.stop { background: #c93545; }
+    .session-btn:hover:not(:disabled) { filter: brightness(1.12); }
+    .session-btn:disabled { opacity: .3; cursor: default; }
+    .session-buttons { align-items: center; }
+    .limit-toggle {
+      display: flex; margin-left: 6px; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border, rgba(255,255,255,.14));
+    }
+    .limit-opt {
+      border: 0; height: 24px; padding: 0 10px; background: transparent; color: var(--muted);
+      font-size: .66rem; font-weight: 800; letter-spacing: .08em; cursor: pointer;
+    }
+    .limit-opt.active { background: rgba(255,255,255,.16); color: var(--text); }
+    .limit-input {
+      width: 46px; height: 26px; border-radius: 8px; text-align: center;
+      border: 1px solid var(--border, rgba(255,255,255,.14));
+      background: rgba(255,255,255,.05); color: var(--text); font-size: .8rem; font-weight: 700;
+    }
+    .limit-unit { color: var(--muted); font-size: .7rem; letter-spacing: .04em; }
+    .limit-input:disabled, .limit-opt:disabled { opacity: .5; cursor: default; }
+    .control-panel { position: relative; z-index: 30; }
+    .results-accuracy {
+      font-size: clamp(4.5rem, min(16vw, 18vh), 10rem);
+      font-weight: 900; line-height: 1; color: var(--text); margin: 8px 0 2px;
+    }
+    .results-accuracy-label { color: var(--muted); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; }
+    .results-hint { font-size: .85rem; }
+
+    .cue-box {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(124,140,255,.12), rgba(55,210,162,.08));
+      border: 1px solid rgba(255,255,255,.08);
+      min-height: 104px;
+      padding: 14px 16px;
+    }
+    .cue-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .cue-rule {
+      margin: 8px 0 0;
+      font-size: clamp(1.05rem, 1.8vw, 1.55rem);
+      font-weight: 800;
+    }
+
+    .cue-rule.rule-word {
+      margin: 0;
+      font-size: clamp(2.4rem, min(10vw, 9vh), 8rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+    .cue-box.trial-mode .cue-label { margin-bottom: 6px; }
+    .cue-box { min-height: var(--cue-h); }
+    .cue-box.trial-mode { height: var(--cue-h); overflow: hidden; }
+    .cue-center { min-width: 0; width: 100%; }
+    .cue-distractor { display: none; }
+    .cue-box.trial-mode {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr) minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
+    .cue-box.trial-mode .cue-distractor {
+      display: grid;
+      place-items: center;
+      align-self: stretch;
+      justify-self: stretch;
+      border-radius: 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--text);
+      font-size: clamp(1.8rem, min(5vw, 8vh), 4.5rem);
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .cue-box.trial-mode .cue-rule.rule-word {
+      font-size: clamp(1.8rem, min(5.5vw, 9vh), 7rem);
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+    .cue-rule.negated {
+      color: #ff4d5e;
+      text-shadow: 0 0 16px rgba(255,77,94,.28);
+    }
+    .cue-help {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .88rem;
+      max-width: 64ch;
+      line-height: 1.35;
+    }
+
+    .stimulus-area {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 0;
+      min-height: 0;
+      align-content: start;
+    }
+
+    .stimulus-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      width: min(100%, 700px);
+      margin: 0 auto;
+    }
+
+    .stimulus-grid {
+      width: 100%;
+      height: auto;
+      min-height: var(--cue-h);
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(var(--grid-cols, 2), minmax(0, 1fr));
+      margin: 0 auto;
+      align-content: center;
+    }
+
+    /* Keep the stimulus slot reserved while the stimuli are hidden. */
+    .stimulus-grid.hidden {
+      display: grid !important;
+      visibility: hidden;
+    }
+
+    .stimulus-grid .stimulus {
+      min-height: 84px;
+      font-size: clamp(1rem, 2.2vw, 2.1rem);
+    }
+    /* Two stimuli: each tile is as tall as the rule box, with large text */
+    .stimulus-grid.pair .stimulus {
+      height: var(--cue-h);
+      min-height: var(--cue-h);
+      border-radius: 22px;
+      font-size: clamp(2.2rem, min(7vw, 8vh), 5.5rem);
+    }
+
+    .stimulus.selected {
+      outline: 2px solid var(--accent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08), var(--shadow);
+    }
+
+    .stimulus {
+      min-height: 94px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 12px 10px;
+      font-size: clamp(1.15rem, 2.6vw, 2.55rem);
+      font-weight: 850;
+      letter-spacing: .01em;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.05;
+    }
+
+    .vs {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .8rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      user-select: none;
+      padding: 0 2px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .button-row .answer-btn.same { border-radius: 18px 0 0 18px; }
+    .button-row .answer-btn.diff { border-radius: 0 18px 18px 0; }
+    .button-row .answer-btn { min-height: 72px; box-shadow: none; }
+    .button-row .answer-btn:hover, .button-row .answer-btn:active { transform: none; }
+    .button-row.nback-enabled .answer-btn.nback { margin-top: 8px; border-radius: 18px; }
+    .button-row .answer-btn.same,
+    .button-row .answer-btn.diff {
+      background: #ffffff;
+      color: #12172a;
+      font-size: 1.15rem;
+    }
+    .button-row .answer-btn.same { border-right: 1px solid rgba(18,23,42,.18); }
+    .button-row .answer-btn.same:hover:not(:disabled),
+    .button-row .answer-btn.diff:hover:not(:disabled) { filter: brightness(.94); }
+    .button-row .answer-btn.same:disabled,
+    .button-row .answer-btn.diff:disabled { opacity: .55; }
+
+    .button-row.nback-enabled .answer-btn.nback {
+      grid-column: 1 / -1;
+    }
+
+    .answer-btn.nback {
+      background: linear-gradient(135deg, #aa8dff, #7a61e8);
+    }
+
+    .nback-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(170,141,255,.12);
+      border: 1px solid rgba(170,141,255,.24);
+      color: var(--text);
+      font-size: .74rem;
+      font-weight: 850;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+
+    .answer-btn {
+      border: 0;
+      border-radius: 18px;
+      padding: 14px 14px;
+      color: var(--text);
+      font-size: .98rem;
+      font-weight: 850;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: transform .14s ease, filter .14s ease, background .14s ease;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      min-height: 54px;
+    }
+    .answer-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .answer-btn:active { transform: translateY(1px) scale(.99); }
+    .answer-btn.same { background: linear-gradient(135deg, #28c08a, #1f986f); }
+    .answer-btn.diff { background: linear-gradient(135deg, #ff7a7a, #d95b5b); }
+    .answer-btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .footnote {
+      text-align: center;
+      color: var(--muted);
+      font-size: .8rem;
+      padding-bottom: 0;
+      align-self: end;
+      opacity: .6;
+    }
+
+    .feedback {
+      position: absolute;
+      inset: auto 14px 14px auto;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      display: none;
+      box-shadow: var(--shadow);
+      font-size: .88rem;
+    }
+    .feedback.good { display: block; background: rgba(55,210,162,.16); color: #aef7de; border: 1px solid rgba(55,210,162,.3); }
+    .feedback.bad { display: block; background: rgba(255,107,107,.16); color: #ffd0d0; border: 1px solid rgba(255,107,107,.3); }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 30;
+    }
+    .overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .settings-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: min(430px, 92vw);
+      height: 100%;
+      background: linear-gradient(180deg, rgba(23,27,46,.98), rgba(15,18,32,.98));
+      border-right: 1px solid rgba(255,255,255,.08);
+      box-shadow: 18px 0 60px rgba(0,0,0,.35);
+      transform: translateX(-102%);
+      transition: transform .26s ease;
+      z-index: 40;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .settings-panel.open { transform: translateX(0); }
+
+    .settings-head {
+      padding: 18px 18px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .settings-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: .03em;
+    }
+    .close-btn {
+      border: 0;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+
+    .settings-body {
+      padding: 16px 18px;
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .setting {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .setting label {
+      display: block;
+      font-size: .75rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .setting select,
+    .setting input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      background: rgba(9,12,22,.9);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+    .setting input[type="number"]::-webkit-outer-spin-button,
+    .setting input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: .94rem;
+      line-height: 1.25;
+    }
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .setting-help {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .83rem;
+      line-height: 1.45;
+    }
+
+    .settings-footer {
+      padding: 14px 18px 18px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: grid;
+      gap: 10px;
+    }
+    .primary-btn, .secondary-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, var(--accent), #5c6bff);
+      color: white;
+    }
+    .secondary-btn {
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+    }
+
+    .results {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(10,13,24,.86);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      padding: 20px;
+    }
+    .results.open { display: grid; }
+    .results-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06); color: var(--text); font-size: 1rem; cursor: pointer;
+    }
+    .results-close:hover { background: rgba(255,255,255,.14); }
+    .results-copy {
+      margin: 4px auto 0; display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.08); color: var(--text);
+      border-radius: 10px; padding: 7px 14px; font-size: .82rem; font-weight: 700; cursor: pointer;
+    }
+    .results-copy:hover { background: rgba(255,255,255,.16); }
+    .results-copy.copied { background: #1f9d58; border-color: transparent; color: #fff; }
+    .results-card {
+      position: relative;
+      width: min(560px, 100%);
+      background: rgba(24,29,48,.96);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .results-card h3 { margin: 0 0 8px; font-size: 1.4rem; }
+    .results-card p { margin: 6px 0; color: var(--muted); }
+    .results-grid {
+      margin: 16px 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .results-cell {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 12px 10px;
+    }
+    .results-cell .big { display: block; font-size: 1.2rem; font-weight: 900; margin-top: 2px; }
+
+    @media (max-width: 700px) {
+      html, body { height: auto; min-height: 100%; }
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .app {
+        height: auto;
+        min-height: 100%;
+      }
+      .main {
+        align-items: start;
+        overflow: visible;
+        padding-bottom: 28px;
+      }
+      .topbar { align-items: flex-start; }
+      .status-row { justify-content: flex-start; }
+      .stage {
+        min-height: auto;
+        height: auto;
+        overflow: visible;
+        padding: 14px;
+        margin-bottom: 24px;
+      }
+      .stimulus-pair { grid-template-columns: 1fr; gap: 8px; width: 100%; }
+      .vs { display: none; }
+      .button-row { width: 100%; }
+      .button-row.nback-enabled .answer-btn.nback { grid-column: 1 / -1; }
+      .results-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .results-cell { padding: 8px 4px; font-size: .8rem; }
+      .results { align-items: start; padding-top: 175px; }
+    }
+
+    :root {
+      --surface: rgba(20, 25, 42, .94);
+      --surface-2: rgba(28, 34, 56, .92);
+      --surface-3: rgba(36, 43, 70, .96);
+      --border: rgba(164, 176, 255, .18);
+      --chip-bg: rgba(255, 255, 255, .06);
+      --cue-bg: rgba(124, 140, 255, .10);
+      --grid-bg: rgba(255, 255, 255, .05);
+      --input-bg: rgba(10, 13, 24, .92);
+      --button-neutral: rgba(255, 255, 255, .08);
+      --button-same-start: #8da2ff;
+      --button-same-end: #6475ff;
+      --button-diff-start: #5de0c8;
+      --button-diff-end: #1fb8a1;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .stage,
+    .settings-panel,
+    .results-card {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .cue-box {
+      background: linear-gradient(180deg, var(--cue-bg), var(--surface-2));
+      border-color: var(--border);
+    }
+
+    .stat-chip,
+    .setting,
+    .results-cell,
+    .stimulus,
+    .close-btn,
+    .gear-btn,
+    .secondary-btn,
+    .setting select,
+    .setting input {
+      background: var(--surface-2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .gear-btn:hover,
+    .close-btn:hover,
+    .secondary-btn:hover {
+      background: var(--surface-3);
+    }
+
+    .stat-chip .label,
+    .title-wrap p,
+    .status-banner,
+    .cue-help,
+    .setting-help,
+    .results-card p {
+      color: var(--muted);
+    }
+
+    .answer-btn.same {
+      background: linear-gradient(135deg, var(--button-same-start), var(--button-same-end));
+    }
+
+    .answer-btn.diff {
+      background: linear-gradient(135deg, var(--button-diff-start), var(--button-diff-end));
+    }
+
+    .answer-btn {
+      box-shadow: 0 20px 60px rgba(0,0,0,.24);
+    }
+
+    .setting input,
+    .setting select {
+      background: var(--input-bg);
+    }
+
+    .stimulus-grid .stimulus {
+      background: var(--grid-bg);
+    }
+
+    .overlay {
+      background: rgba(0,0,0,.45);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <button class="gear-btn" id="openSettings" aria-label="Open settings">⚙</button>
+         <div class="status-actions"><button class="progress-btn" id="openProgress" aria-label="Open progress" title="Progress">↗</button></div>
+        <div class="title-wrap">
+          <h1>aPOSNER Trainer</h1>
+          <p>Speed sorting for same / different rules</p>
+        </div>
+      </div>
+      <div class="status-row">
+       
+        <div class="stat-chip"><span class="label">Level</span><span class="value" id="levelDisplay">1</span></div>
+        <div class="stat-chip" id="accuracyChip"><span class="label">Accuracy</span><span class="value" id="accuracyDisplay">0%</span></div>
+        <div class="stat-chip"><span class="label">Today</span><span class="value" id="todayDisplay">00:00:00</span></div>
+        <div class="stat-chip"><span class="label">Session</span><span class="value" id="timeDisplay">00:00</span></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="stage" id="stage">
+        <div class="status-banner">
+          <div id="modeInfo">Mode: Classic</div>
+          <div id="nBackInfo" class="nback-status hidden" aria-live="polite">N-back: n=2</div>
+          <div id="progressInfo">Trials: 0 • Mistakes: 0 • Streak: 0</div>
+        </div>
+
+        <div class="control-panel">
+          <div class="session-buttons">
+            <button class="session-btn start" id="mainStartBtn">START</button>
+            <button class="session-btn stop" id="mainStopBtn" disabled>STOP</button>
+            <div class="limit-toggle" role="group" aria-label="Session length type">
+              <button type="button" class="limit-opt active" id="limitTimeBtn" data-type="time">TIME</button>
+              <button type="button" class="limit-opt" id="limitQuestionsBtn" data-type="questions">QUESTIONS</button>
+            </div>
+            <input class="limit-input" id="limitValue" type="text" inputmode="decimal" value="3" aria-label="Session length" />
+            <span class="limit-unit" id="limitUnit">min</span>
+          </div>
+          <div class="level-picker" id="levelPicker" role="group" aria-label="Difficulty level">
+            <span class="level-head">Level</span>
+            <div class="level-buttons" id="levelButtons"></div>
+            <span id="levelReadout">4 • 1.28s</span>
+          </div>
+        </div>
+
+        <div class="cue-box" id="cueBox">
+          <div class="cue-distractor" id="distractorLeft" aria-hidden="true"></div>
+          <div class="cue-center">
+            <div class="cue-label" id="cueLabel">Ready</div>
+            <div class="cue-rule" id="cueRule">Press START</div>
+            <div class="cue-help" id="cueHelp">Pick a level and session length above, then press START.</div>
+          </div>
+          <div class="cue-distractor" id="distractorRight" aria-hidden="true"></div>
+        </div>
+
+        <div class="stimulus-area">
+          <div class="stimulus-grid hidden" id="stimulusGrid"></div>
+          <div class="button-row" id="buttonRow">
+            <button class="answer-btn same" id="sameBtn" disabled>SAME</button>
+            <button class="answer-btn diff" id="differentBtn" disabled>DIFFERENT</button>
+            <button class="answer-btn nback hidden" id="nBackBtn" disabled>N-BACK MATCH</button>
+          </div>
+        </div>
+
+        <div class="footnote">Keyboard shortcuts: S / Left Arrow = Same, D / Right Arrow = Different, N = N-back Match</div>
+        <div class="feedback" id="feedback"></div>
+
+        <div class="results" id="resultsOverlay">
+          <div class="results-card">
+            <button class="results-close" id="resultsCloseBtn" type="button" aria-label="Close results">✕</button>
+            <h3 id="resultsTitle">Session complete</h3>
+            <div class="results-accuracy" id="finalAccuracy">0%</div>
+            <div class="results-accuracy-label">Accuracy</div>
+            <p id="resultsSummary">Great work.</p>
+            <div class="results-grid">
+              <div class="results-cell"><span>Questions</span><span class="big" id="finalTrials">0</span></div>
+              <div class="results-cell"><span>Mistakes</span><span class="big" id="finalMistakes">0</span></div>
+              <div class="results-cell"><span>Final level</span><span class="big" id="finalLevel">1</span></div>
+            </div>
+            <button class="results-copy" id="resultsCopyBtn" type="button">Copy results</button>
+            <p class="results-hint">Press START for a new session.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="progress-panel" id="progressPanel" aria-label="Progress panel">
+    <div class="progress-head">
+      <h2>Progress</h2>
+      <button class="close-btn" id="closeProgress" aria-label="Close progress">✕</button>
+    </div>
+    <div class="progress-body">
+      <div class="progress-summary">
+        <div class="progress-card"><span class="label">Total time</span><span class="value" id="progressTotalTime">00:00:00</span></div>
+        <div class="progress-card"><span class="label">Days trained</span><span class="value" id="progressDays">0</span></div>
+        <div class="progress-card"><span class="label">Sessions</span><span class="value" id="progressSessions">0</span></div>
+        <div class="progress-card"><span class="label">Longest session</span><span class="value" id="progressLongest">00:00:00</span></div>
+        <div class="progress-card"><span class="label">Average accuracy</span><span class="value" id="progressAvgAccuracy">0%</span></div>
+        <div class="progress-card"><span class="label">Best session accuracy</span><span class="value" id="progressBestAccuracy">0%</span></div>
+      </div>
+      <div class="progress-section-title">Training totals</div>
+      <div class="progress-summary">
+        <div class="progress-card"><span class="label">Total trials</span><span class="value" id="progressTrials">0</span></div>
+        <div class="progress-card"><span class="label">Correct</span><span class="value" id="progressCorrect">0</span></div>
+        <div class="progress-card"><span class="label">Mistakes</span><span class="value" id="progressWrong">0</span></div>
+        <div class="progress-card"><span class="label">Current day streak</span><span class="value" id="progressStreak">0</span></div>
+      </div>
+      <div class="setting-help" id="progressLastSession">No sessions recorded yet.</div>
+    </div>
+    <div class="progress-foot">
+      <button class="secondary-btn" id="resetProgressBtn">Reset Saved Progress</button>
+    </div>
+  </aside>
+  <aside class="settings-panel" id="settingsPanel" aria-label="Settings panel">
+    <div class="settings-head">
+      <h2>Settings</h2>
+      <button class="close-btn" id="closeSettings" aria-label="Close settings">✕</button>
+    </div>
+<div class="setting">
+            <a href="https://discord.gg/brain">Mindbuilding Discord</a>
+        </div>
+    <div class="settings-body">
+      <div class="setting">
+        <label for="modeSelect">Mode</label>
+        <select id="modeSelect">
+          <option value="classic">Classic</option>
+          <option value="multi">Multi</option>
+          <option value="multiPlus">Multi+</option>
+        </select>
+        <div class="setting-help">Classic uses number representations. Multi adds semantic rules. Multi+ adds more rule families and larger word banks.</div>
+      </div>
+
+      <div class="setting">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect">
+          <option value="default">Default (current)</option>
+          <option value="dark">Dark</option>
+          <option value="cyan">Cyan</option>
+        </select>
+        <div class="setting-help">Changes the overall palette and background.</div>
+      </div>
+
+      <div class="setting">
+        <label for="stimuliCount">Number of stimuli</label>
+        <select id="stimuliCount">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+        </select>
+        <div class="setting-help">2 shows the pair task. 3–9 show a grid in every mode; Classic can also use RMT when grid mode is enabled.</div>
+      </div>
+
+      <div class="setting">
+        <label for="writingSystemsCount">Writing systems</label>
+        <select id="writingSystemsCount">
+          <option value="2">2 — Arabic + Roman</option>
+          <option value="3">3 — + Latin alphabet</option>
+          <option value="4">4 — + Greek alphabet</option>
+          <option value="5">5 — + Cyrillic alphabet</option>
+          <option value="6">6 — + Hebrew alphabet</option>
+          <option value="7">7 — + Morse code alphabet</option>
+        </select>
+        <div class="setting-help">Systems are cumulative: select 7 to include Morse. Morse represents each number as its A–Z letter code in dots and dashes.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="rmtMode" type="checkbox" /> Enable relational monitoring training (RMT) in Classic mode</label>
+        <div class="setting-help">Adds row, column, diagonal, and corner judgments when Classic mode uses a grid.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="rmtHighlightSelected" type="checkbox" checked /> Highlight the specific RMT subset</label>
+        <div class="setting-help">Turn this off to show only the subset type (row, column, diagonal, or corners) and make the participant check them all.</div>
+      </div>
+
+      <div class="setting">
+        <label>Number range</label>
+        <div class="inline-grid">
+          <input id="minNumber" type="text" inputmode="numeric" value="1" />
+          <input id="maxNumber" type="text" inputmode="numeric" value="12" />
+        </div>
+        <div class="setting-help">Used for the number-based rules in classic mode.</div>
+      </div>
+
+      <!-- Level is chosen with the 0–10 buttons above the rule; kept here as hidden storage. -->
+      <input id="startingLevel" type="hidden" value="4" />
+
+      <div class="setting">
+        <label class="check-row"><input id="keepLevelFixed" type="checkbox" /> Keep level fixed during the session</label>
+        <div class="setting-help">Prevents automatic level up or level down during the session. The level you pick above the rule stays active until the session ends.</div>
+      </div>
+
+      <!-- Session length is set with the TIME / QUESTIONS control beside STOP; kept here as hidden storage. -->
+      <input id="sessionSeconds" type="hidden" value="180" />
+
+      <div class="setting">
+        <label class="check-row"><input id="negationMode" type="checkbox" /> Enable negation mode</label>
+        <div class="setting-help">When enabled, about half of trials display the rule in red. On those trials, press the opposite answer from the normal response (SAME becomes DIFFERENT and vice versa).</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="nBackMode" type="checkbox" /> Enable n-back rule monitoring</label>
+        <div class="setting-help">Adds a second judgment: press N-BACK MATCH when the current rule is the same rule used n trials ago. The SAME/DIFFERENT judgment is still required on every trial.</div>
+      </div>
+
+      <div class="setting">
+        <label for="nBackSteps">N-back distance (n)</label>
+        <input id="nBackSteps" type="text" inputmode="numeric" value="2" />
+        <div class="setting-help">Fixed mode uses this n. Values from 1–9 are allowed. On the first n trials there is no earlier comparison, so the N-BACK MATCH button should not be pressed.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="variableNBack" type="checkbox" /> Enable variable n-back</label>
+        <div class="setting-help">Starts at the selected n. Every 8 completed trials, recent overall accuracy influences a random change of n by one step, favoring harder n at high accuracy and easier n at low accuracy. The live n is displayed above the task.</div>
+      </div>
+
+      <div class="setting">
+        <label for="cueDurationMs">Rule cue time (ms)</label>
+        <input id="cueDurationMs" type="text" inputmode="numeric" value="500" />
+        <div class="setting-help">Set this to 0 to skip the cue frame entirely and go straight to the stimuli.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="showStatsDuringSession" type="checkbox" checked /> Show accuracy and mistakes during the session</label>
+        <div class="setting-help">Turn this off to hide accuracy plus the trials/mistakes/streak line until the session ends.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="showRuleDuringStimulus" type="checkbox" checked /> Show the rule text while the stimuli are visible</label>
+        <div class="setting-help">Turn this off to keep the stimuli on screen without repeating the rule text during the response window.</div>
+      </div>
+
+      <div class="setting">
+        <label class="check-row"><input id="buzzerOnWrong" type="checkbox" /> Play a buzzer after wrong answers</label>
+        <div class="setting-help">Plays a short buzzer sound after an incorrect response or timeout.</div>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="secondary-btn" id="resetDefaultsBtn">Reset Defaults</button>
+    </div>
+  </aside>
+
+  
+<script>
+(() => {
+  const SETTINGS_KEY = 'aposner_settings_v1';
+
+  const defaults = {
+    mode: 'classic',
+    theme: 'default',
+    stimuliCount: 2,
+    writingSystemsCount: 2,
+    rmtMode: false,
+    rmtHighlightSelected: true,
+    minNumber: 1,
+    maxNumber: 12,
+    startingLevel: 4,
+    keepLevelFixed: false,
+    sessionSeconds: 180,
+    cueDurationMs: 500,
+    negationMode: false,
+    nBackMode: false,
+    nBackSteps: 2,
+    variableNBack: false,
+    showStatsDuringSession: true,
+    showRuleDuringStimulus: true,
+    buzzerOnWrong: false,
+  };
+
+  const classicRules = [
+    { id: 'meaning', word: 'MEANING', label: 'Meaning rule', cue: 'Judge whether all stimuli mean the same number.', build: buildMeaningTrial },
+    { id: 'physical', word: 'SCRIPT', label: 'Physical property rule', cue: 'Judge whether all stimuli use the same writing system.', build: buildPhysicalTrial },
+  ];
+
+  const multiRules = [
+    ...classicRules,
+    { id: 'categorical', word: 'CATEGORY', label: 'Categorical rule', cue: 'Judge whether the two words belong to the same category.', build: buildCategoricalTrial },
+    { id: 'actionObject', word: 'ACTION', label: 'Action-object rule', cue: 'Judge whether the action and object logically fit together.', build: buildActionObjectTrial },
+    { id: 'partWhole', word: 'PART', label: 'Part-whole rule', cue: 'Judge whether the first word is a part of the second.', build: buildPartWholeTrial },
+    { id: 'color', word: 'COLOR', label: 'Color property rule', cue: 'Judge whether the two words share the same color.', build: buildColorTrial },
+    { id: 'functional', word: 'FUNCTION', label: 'Functional rule', cue: 'Judge whether the two things work together.', build: buildFunctionalTrial },
+    { id: 'antonyms', word: 'OPPOSITE', label: 'Antonyms rule', cue: 'Judge whether the two words are opposites.', build: buildAntonymTrial },
+  ];
+
+  const multiPlusRules = [
+    ...multiRules,
+    { id: 'synonyms', word: 'SYNONYM', label: 'Synonym rule', cue: 'Judge whether the two words mean the same thing.', build: buildSynonymTrial },
+    { id: 'location', word: 'LOCATION', label: 'Location rule', cue: 'Judge whether the item belongs in the place named by the second word.', build: buildLocationTrial },
+    { id: 'material', word: 'MATERIAL', label: 'Material rule', cue: 'Judge whether the item is commonly made from the named material.', build: buildMaterialTrial },
+    { id: 'sequence', word: 'SEQUENCE', label: 'Sequence rule', cue: 'Judge whether the two words appear next to each other in a familiar sequence.', build: buildSequenceTrial },
+    { id: 'causeEffect', word: 'CAUSE', label: 'Cause-effect rule', cue: 'Judge whether the first word commonly leads to the second.', build: buildCauseEffectTrial },
+  ];
+
+  const rmtRules = [
+    { id: 'increasing', word: 'INCREASING', label: 'Increasing magnitude', cue: 'the values increase from left to right, top to bottom, or along the chosen direction.', relation: 'increasing' },
+    { id: 'decreasing', word: 'DECREASING', label: 'Decreasing magnitude', cue: 'the values decrease from left to right, top to bottom, or along the chosen direction.', relation: 'decreasing' },
+    { id: 'allDifferent', word: 'UNIQUE', label: 'All different', cue: 'all values are different.', relation: 'allDifferent' },
+    { id: 'writingSystems', word: 'SCRIPTS', label: 'All different writing systems', cue: 'all writing systems are different.', relation: 'writingSystems' },
+  ];
+
+  const categoryLibrary = [
+    ['bird', ['sparrow', 'robin', 'eagle', 'falcon', 'parrot', 'owl', 'heron', 'swallow', 'crow', 'pelican']],
+    ['tree', ['oak', 'maple', 'pine', 'birch', 'cedar', 'willow', 'elm', 'spruce', 'ash', 'fir']],
+    ['flower', ['rose', 'tulip', 'lily', 'daisy', 'orchid', 'violet', 'poppy', 'iris', 'peony', 'daffodil']],
+    ['fruit', ['apple', 'banana', 'pear', 'peach', 'plum', 'mango', 'grape', 'cherry', 'melon', 'apricot']],
+    ['vehicle', ['car', 'truck', 'bus', 'train', 'boat', 'plane', 'bicycle', 'scooter', 'tractor', 'van']],
+    ['musical instrument', ['piano', 'violin', 'guitar', 'flute', 'drum', 'trumpet', 'saxophone', 'harp', 'cello', 'clarinet']],
+    ['tool', ['hammer', 'saw', 'wrench', 'drill', 'pliers', 'chisel', 'screwdriver', 'level', 'axe', 'tape']],
+    ['animal', ['dog', 'cat', 'horse', 'rabbit', 'lion', 'tiger', 'bear', 'fox', 'monkey', 'deer']],
+  ];
+
+  const actionObjectPairs = [
+    ['drink', 'water'], ['eat', 'food'], ['hammer', 'nail'], ['needle', 'thread'], ['wash', 'dishes'], ['bake', 'bread'],
+    ['write', 'paper'], ['read', 'book'], ['cut', 'paper'], ['paint', 'wall'], ['fix', 'bike'], ['catch', 'ball'],
+    ['stir', 'soup'], ['kick', 'ball'], ['open', 'door'], ['unlock', 'lock'], ['lift', 'box'], ['cook', 'meal'],
+    ['sweep', 'floor'], ['brush', 'teeth'], ['plant', 'seed'], ['climb', 'stairs'], ['freeze', 'juice'], ['pour', 'tea'],
+  ];
+
+  const partWholePairs = [
+    ['petal', 'flower'], ['leaf', 'tree'], ['wheel', 'car'], ['seed', 'fruit'], ['page', 'book'], ['finger', 'hand'],
+    ['key', 'keyboard'], ['brick', 'wall'], ['hoof', 'horse'], ['branch', 'tree'], ['roof', 'house'], ['window', 'house'],
+    ['word', 'sentence'], ['chapter', 'book'], ['tile', 'roof'], ['shell', 'egg'], ['button', 'shirt'], ['petal', 'rose'],
+    ['leaf', 'plant'], ['rim', 'wheel'], ['handle', 'cup'], ['lens', 'camera'], ['pixel', 'screen'], ['tooth', 'mouth'],
+  ];
+
+  const colorGroups = {
+    red: ['cherry', 'rose', 'strawberry', 'apple', 'brick', 'firetruck', 'ruby', 'tomato'],
+    blue: ['sky', 'ocean', 'blueberry', 'jeans', 'sapphire', 'ink', 'indigo', 'navy'],
+    green: ['grass', 'leaf', 'frog', 'emerald', 'lime', 'olive', 'mint', 'seaweed'],
+    yellow: ['banana', 'sun', 'lemon', 'daffodil', 'butter', 'corn', 'mustard', 'gold'],
+    white: ['snow', 'paper', 'cloud', 'milk', 'salt', 'chalk', 'pearl', 'flour'],
+    black: ['night', 'coal', 'ink', 'soot', 'crow', 'piano', 'obsidian', 'pepper'],
+    brown: ['soil', 'wood', 'coffee', 'chocolate', 'bear', 'cinnamon', 'cocoa', 'walnut'],
+    orange: ['orange', 'pumpkin', 'carrot', 'tiger', 'ember', 'apricot', 'marigold', 'nectarine'],
+    purple: ['grape', 'plum', 'lavender', 'violet', 'amethyst', 'eggplant', 'orchid', 'lilac'],
+  };
+
+  const functionalPairs = [
+    ['pen', 'paper'], ['engine', 'car'], ['charger', 'phone'], ['key', 'lock'], ['fork', 'plate'], ['needle', 'thread'],
+    ['brush', 'paint'], ['camera', 'battery'], ['shoe', 'sock'], ['keyboard', 'computer'], ['spoon', 'bowl'], ['paddle', 'canoe'],
+    ['mic', 'speaker'], ['cup', 'coffee'], ['glasses', 'eyes'], ['belt', 'pants'], ['remote', 'tv'], ['broom', 'dust'],
+    ['ladder', 'roof'], ['map', 'trip'], ['tent', 'camp'], ['bandage', 'wound'], ['ticket', 'train'], ['cap', 'head'],
+  ];
+
+  const antonymPairs = [
+    ['hot', 'cold'], ['early', 'late'], ['strong', 'weak'], ['slow', 'fast'], ['open', 'closed'], ['light', 'dark'],
+    ['hard', 'soft'], ['rough', 'smooth'], ['near', 'far'], ['full', 'empty'], ['happy', 'sad'], ['left', 'right'],
+    ['up', 'down'], ['clean', 'dirty'], ['old', 'new'], ['high', 'low'], ['push', 'pull'], ['win', 'lose'],
+    ['arrive', 'leave'], ['freeze', 'melt'], ['borrow', 'lend'], ['enter', 'exit'], ['bright', 'dim'], ['safe', 'dangerous'],
+  ];
+
+  const synonymPairs = [
+    ['rapid', 'fast'], ['tiny', 'small'], ['glad', 'happy'], ['begin', 'start'], ['purchase', 'buy'], ['silent', 'quiet'],
+    ['smart', 'clever'], ['repair', 'fix'], ['ancient', 'old'], ['reply', 'answer'], ['assist', 'help'], ['finish', 'end'],
+    ['choose', 'pick'], ['idea', 'notion'], ['journey', 'trip'], ['exit', 'leave'], ['rich', 'wealthy'], ['worry', 'fret'],
+    ['calm', 'peaceful'], ['error', 'mistake'], ['huge', 'large'], ['search', 'seek'], ['protect', 'guard'], ['speak', 'talk'],
+    ['difficult', 'hard'], ['cease', 'stop'], ['discover', 'find'], ['shout', 'yell'], ['complete', 'finish'], ['rapidly', 'quickly'],
+  ];
+
+  const locationPairs = [
+    ['fish', 'water'], ['book', 'library'], ['plane', 'airport'], ['patient', 'hospital'], ['student', 'school'], ['cow', 'farm'],
+    ['prisoner', 'jail'], ['soldier', 'barracks'], ['suitcase', 'hotel'], ['movie', 'theater'], ['medicine', 'pharmacy'], ['mail', 'post office'],
+    ['car', 'garage'], ['boat', 'harbor'], ['milk', 'refrigerator'], ['paint', 'studio'], ['clothes', 'closet'], ['bread', 'bakery'],
+    ['doctor', 'clinic'], ['chef', 'kitchen'], ['ball', 'stadium'], ['teacher', 'classroom'], ['money', 'bank'], ['luggage', 'terminal'],
+    ['animals', 'zoo'], ['computers', 'office'], ['flowers', 'garden'], ['shoes', 'store'], ['books', 'bookstore'], ['trash', 'bin'],
+  ];
+
+  const materialPairs = [
+    ['wood', 'table'], ['glass', 'window'], ['cotton', 'shirt'], ['wool', 'sweater'], ['leather', 'shoe'], ['metal', 'spoon'],
+    ['clay', 'pot'], ['paper', 'book'], ['plastic', 'bottle'], ['stone', 'wall'], ['silk', 'dress'], ['rubber', 'boot'],
+    ['steel', 'bridge'], ['ceramic', 'mug'], ['concrete', 'building'], ['linen', 'sheet'], ['bronze', 'statue'], ['gold', 'ring'],
+    ['silver', 'coin'], ['marble', 'column'], ['graphite', 'pencil'], ['foam', 'mattress'], ['brick', 'house'], ['nylon', 'rope'],
+    ['cardboard', 'package'], ['aluminum', 'can'], ['velvet', 'curtain'], ['wax', 'candle'], ['sponge', 'mattress'], ['fleece', 'blanket'],
+  ];
+
+  const sequencePairs = [
+    ['monday', 'tuesday'], ['tuesday', 'wednesday'], ['wednesday', 'thursday'], ['thursday', 'friday'], ['friday', 'saturday'],
+    ['january', 'february'], ['february', 'march'], ['march', 'april'], ['april', 'may'], ['may', 'june'], ['june', 'july'],
+    ['summer', 'autumn'], ['autumn', 'winter'], ['spring', 'summer'], ['winter', 'spring'], ['dawn', 'morning'], ['morning', 'noon'],
+    ['noon', 'afternoon'], ['afternoon', 'evening'], ['evening', 'night'], ['one', 'two'], ['two', 'three'], ['three', 'four'],
+    ['first', 'second'], ['second', 'third'], ['alpha', 'beta'], ['beta', 'gamma'], ['seed', 'sprout'], ['egg', 'chick'], ['child', 'teen'],
+  ];
+
+  const causeEffectPairs = [
+    ['fire', 'smoke'], ['rain', 'puddle'], ['alarm', 'wake'], ['knife', 'cut'], ['sneeze', 'cold'], ['sun', 'tan'],
+    ['ice', 'melt'], ['wind', 'rustle'], ['scratch', 'itch'], ['pepper', 'sneeze'], ['music', 'dance'], ['tears', 'cry'],
+    ['study', 'learn'], ['exercise', 'sweat'], ['bell', 'attention'], ['seed', 'plant'], ['laugh', 'smile'], ['press', 'button'],
+    ['heat', 'sweat'], ['fear', 'run'], ['sugar', 'sweetness'], ['oil', 'slippery'], ['wind', 'blow'], ['hammer', 'dent'],
+    ['friction', 'heat'], ['water', 'wet'], ['cold', 'shiver'], ['storm', 'poweroutage'], ['crowd', 'noise'], ['vote', 'election'],
+  ];
+
+  const els = {
+    openSettings: document.getElementById('openSettings'),
+    closeSettings: document.getElementById('closeSettings'),
+    settingsPanel: document.getElementById('settingsPanel'),
+    overlay: document.getElementById('overlay'),
+    resetDefaultsBtn: document.getElementById('resetDefaultsBtn'),
+    modeSelect: document.getElementById('modeSelect'),
+    themeSelect: document.getElementById('themeSelect'),
+    stimuliCount: document.getElementById('stimuliCount'),
+    writingSystemsCount: document.getElementById('writingSystemsCount'),
+    rmtMode: document.getElementById('rmtMode'),
+    rmtHighlightSelected: document.getElementById('rmtHighlightSelected'),
+    minNumber: document.getElementById('minNumber'),
+    maxNumber: document.getElementById('maxNumber'),
+    startingLevel: document.getElementById('startingLevel'),
+    keepLevelFixed: document.getElementById('keepLevelFixed'),
+    sessionSeconds: document.getElementById('sessionSeconds'),
+    cueDurationMs: document.getElementById('cueDurationMs'),
+    negationMode: document.getElementById('negationMode'),
+    nBackMode: document.getElementById('nBackMode'),
+    nBackSteps: document.getElementById('nBackSteps'),
+    variableNBack: document.getElementById('variableNBack'),
+    showStatsDuringSession: document.getElementById('showStatsDuringSession'),
+    showRuleDuringStimulus: document.getElementById('showRuleDuringStimulus'),
+    buzzerOnWrong: document.getElementById('buzzerOnWrong'),
+    levelDisplay: document.getElementById('levelDisplay'),
+    accuracyChip: document.getElementById('accuracyChip'),
+    accuracyDisplay: document.getElementById('accuracyDisplay'),
+    todayDisplay: document.getElementById('todayDisplay'),
+    timeDisplay: document.getElementById('timeDisplay'),
+    modeInfo: document.getElementById('modeInfo'),
+    nBackInfo: document.getElementById('nBackInfo'),
+    progressInfo: document.getElementById('progressInfo'),
+    cueLabel: document.getElementById('cueLabel'),
+    cueRule: document.getElementById('cueRule'),
+    cueBox: document.getElementById('cueBox'),
+    distractorLeft: document.getElementById('distractorLeft'),
+    limitTimeBtn: document.getElementById('limitTimeBtn'),
+    limitQuestionsBtn: document.getElementById('limitQuestionsBtn'),
+    limitValue: document.getElementById('limitValue'),
+    limitUnit: document.getElementById('limitUnit'),
+    resultsTitle: document.getElementById('resultsTitle'),
+    finalMistakes: document.getElementById('finalMistakes'),
+    resultsCloseBtn: document.getElementById('resultsCloseBtn'),
+    resultsCopyBtn: document.getElementById('resultsCopyBtn'),
+    distractorRight: document.getElementById('distractorRight'),
+    levelButtons: document.getElementById('levelButtons'),
+    levelReadout: document.getElementById('levelReadout'),
+    mainStartBtn: document.getElementById('mainStartBtn'),
+    mainStopBtn: document.getElementById('mainStopBtn'),
+    cueHelp: document.getElementById('cueHelp'),
+    stimulusGrid: document.getElementById('stimulusGrid'),
+    buttonRow: document.getElementById('buttonRow'),
+    sameBtn: document.getElementById('sameBtn'),
+    differentBtn: document.getElementById('differentBtn'),
+    nBackBtn: document.getElementById('nBackBtn'),
+    feedback: document.getElementById('feedback'),
+    resultsOverlay: document.getElementById('resultsOverlay'),
+    resultsSummary: document.getElementById('resultsSummary'),
+    finalLevel: document.getElementById('finalLevel'),
+    finalAccuracy: document.getElementById('finalAccuracy'),
+    finalTrials: document.getElementById('finalTrials'),
+    openProgress: document.getElementById('openProgress'),
+    progressPanel: document.getElementById('progressPanel'),
+    closeProgress: document.getElementById('closeProgress'),
+    resetProgressBtn: document.getElementById('resetProgressBtn'),
+    progressTotalTime: document.getElementById('progressTotalTime'),
+    progressDays: document.getElementById('progressDays'),
+    progressSessions: document.getElementById('progressSessions'),
+    progressLongest: document.getElementById('progressLongest'),
+    progressAvgAccuracy: document.getElementById('progressAvgAccuracy'),
+    progressBestAccuracy: document.getElementById('progressBestAccuracy'),
+    progressTrials: document.getElementById('progressTrials'),
+    progressCorrect: document.getElementById('progressCorrect'),
+    progressWrong: document.getElementById('progressWrong'),
+    progressStreak: document.getElementById('progressStreak'),
+    progressLastSession: document.getElementById('progressLastSession'),
+  };
+
+  const state = {
+    running: false,
+    phase: 'idle',
+    level: 1,
+    trialCount: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    consecutiveMistakes: 0,
+    trialResults: [],
+    lastPromotionAt: 0,
+    currentTrial: null,
+    responseLocked: false,
+    nBackHistory: [],
+    currentNBack: 2,
+    nBackModeChangedMessage: false,
+    cueTimer: null,
+    responseTimer: null,
+    sessionTimer: null,
+    playTimer: null,
+    sessionEndsAt: 0,
+    audioContext: null,
+    sessionStartAt: 0,
+    progressRecorded: false,
+  };
+
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function randInt(min, max) {
+    const lo = Math.ceil(min);
+    const hi = Math.floor(max);
+    return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+  }
+
+  function randomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function shuffle(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function toRoman(num) {
+    const map = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+    let out = '';
+    let n = Math.max(1, Math.floor(num));
+    for (const [value, sym] of map) {
+      while (n >= value) {
+        out += sym;
+        n -= value;
+      }
+    }
+    return out;
+  }
+
+  function numberToWords(num) {
+    const ones = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    if (num < 10) return ones[num];
+    if (num < 20) return teens[num - 10];
+    if (num < 100) {
+      const t = Math.floor(num / 10);
+      const o = num % 10;
+      return o ? `${tens[t]}-${ones[o]}` : tens[t];
+    }
+    if (num < 1000) {
+      const h = Math.floor(num / 100);
+      const rem = num % 100;
+      return rem ? `${ones[h]} hundred ${numberToWords(rem)}` : `${ones[h]} hundred`;
+    }
+    return String(num);
+  }
+
+  function numberToIndexedLetters(num, alphabet) {
+    const chars = Array.from(alphabet);
+    let n = Math.max(1, Math.floor(num));
+    let out = '';
+    const base = chars.length;
+    while (n > 0) {
+      n -= 1;
+      out = `${chars[n % base]}${out}`;
+      n = Math.floor(n / base);
+    }
+    return out;
+  }
+
+  function numberToMorseLetters(num) {
+    const morse = {
+      A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.',
+      H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
+      N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...',
+      T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..',
+    };
+    const letters = numberToIndexedLetters(num, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+    return Array.from(letters, (letter) => morse[letter]).join(' ');
+  }
+
+  function formatNumberBySystem(num, system) {
+    return system.format(num);
+  }
+
+  function getTodayKey() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `aposner_daily_${yyyy}-${mm}-${dd}`;
+  }
+
+  function readDailySeconds() {
+    const raw = Number(localStorage.getItem(getTodayKey()) || 0);
+    return Number.isFinite(raw) ? raw : 0;
+  }
+
+  function writeDailySeconds(seconds) {
+    localStorage.setItem(getTodayKey(), String(Math.max(0, Math.floor(seconds))));
+  }
+
+  function formatHMS(totalSeconds) {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const r = String(s % 60).padStart(2, '0');
+    return `${h}:${m}:${r}`;
+  }
+
+  function formatCountdown(totalSeconds) {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const m = String(Math.floor(s / 60)).padStart(2, '0');
+    const r = String(s % 60).padStart(2, '0');
+    return `${m}:${r}`;
+  }
+
+  function parseIntField(value, fallback, minAllowed, maxAllowed) {
+    const cleaned = String(value ?? '').trim().replace(/[^0-9]/g, '');
+    const parsed = Number.parseInt(cleaned, 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return clamp(parsed, minAllowed, maxAllowed);
+  }
+
+  function settingsFromElements() {
+    const minNumber = parseIntField(els.minNumber.value, defaults.minNumber, 1, 999999);
+    let maxNumber = parseIntField(els.maxNumber.value, defaults.maxNumber, 2, 999999);
+    if (maxNumber <= minNumber) maxNumber = minNumber + 1;
+    return {
+      mode: els.modeSelect.value,
+      theme: els.themeSelect.value,
+      stimuliCount: parseIntField(els.stimuliCount.value, defaults.stimuliCount, 2, 9),
+      writingSystemsCount: parseIntField(els.writingSystemsCount.value, defaults.writingSystemsCount, 2, 7),
+      rmtMode: els.rmtMode.checked,
+      rmtHighlightSelected: els.rmtHighlightSelected.checked,
+      minNumber,
+      maxNumber,
+      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 0, 10),
+      keepLevelFixed: els.keepLevelFixed.checked,
+      sessionSeconds: parseIntField(els.sessionSeconds.value, defaults.sessionSeconds, 30, 999999),
+      cueDurationMs: parseIntField(els.cueDurationMs.value, defaults.cueDurationMs, 0, 999999),
+      negationMode: els.negationMode.checked,
+      nBackMode: els.nBackMode.checked,
+      nBackSteps: parseIntField(els.nBackSteps.value, defaults.nBackSteps, 1, 9),
+      variableNBack: els.variableNBack.checked,
+      showStatsDuringSession: els.showStatsDuringSession.checked,
+      showRuleDuringStimulus: els.showRuleDuringStimulus.checked,
+      buzzerOnWrong: els.buzzerOnWrong.checked,
+    };
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsFromElements()));
+    } catch (_) {}
+  }
+
+  function loadSavedSettings() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+      if (!raw || typeof raw !== 'object') return false;
+      const settings = { ...defaults, ...raw };
+      if (['classic', 'multi', 'multiPlus'].includes(settings.mode)) els.modeSelect.value = settings.mode;
+      if (['default', 'dark', 'cyan'].includes(settings.theme)) els.themeSelect.value = settings.theme;
+      els.stimuliCount.value = String(clamp(Number(settings.stimuliCount) || defaults.stimuliCount, 2, 9));
+      els.writingSystemsCount.value = String(clamp(Number(settings.writingSystemsCount) || defaults.writingSystemsCount, 2, 7));
+      els.rmtMode.checked = Boolean(settings.rmtMode);
+      els.rmtHighlightSelected.checked = Boolean(settings.rmtHighlightSelected);
+      els.minNumber.value = String(parseIntField(settings.minNumber, defaults.minNumber, 1, 999999));
+      els.maxNumber.value = String(Math.max(parseIntField(settings.maxNumber, defaults.maxNumber, 2, 999999), Number(els.minNumber.value) + 1));
+      els.startingLevel.value = String(parseIntField(settings.startingLevel, defaults.startingLevel, 0, 10));
+      els.keepLevelFixed.checked = Boolean(settings.keepLevelFixed);
+      els.sessionSeconds.value = String(parseIntField(settings.sessionSeconds, defaults.sessionSeconds, 30, 999999));
+      els.cueDurationMs.value = String(parseIntField(settings.cueDurationMs, defaults.cueDurationMs, 0, 999999));
+      els.negationMode.checked = Boolean(settings.negationMode);
+      els.nBackMode.checked = Boolean(settings.nBackMode);
+      els.nBackSteps.value = String(parseIntField(settings.nBackSteps, defaults.nBackSteps, 1, 9));
+      els.variableNBack.checked = Boolean(settings.variableNBack);
+      els.showStatsDuringSession.checked = Boolean(settings.showStatsDuringSession);
+      els.showRuleDuringStimulus.checked = Boolean(settings.showRuleDuringStimulus);
+      els.buzzerOnWrong.checked = Boolean(settings.buzzerOnWrong);
+      saveSettings();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function readSettings() {
+    const minNumber = parseIntField(els.minNumber.value, defaults.minNumber, 1, 999999);
+    let maxNumber = parseIntField(els.maxNumber.value, defaults.maxNumber, 2, 999999);
+    if (maxNumber <= minNumber) maxNumber = minNumber + 1;
+    return {
+      mode: els.modeSelect.value,
+      theme: els.themeSelect.value,
+      stimuliCount: parseIntField(els.stimuliCount.value, defaults.stimuliCount, 2, 9),
+      writingSystemsCount: parseIntField(els.writingSystemsCount.value, defaults.writingSystemsCount, 2, 7),
+      rmtMode: els.rmtMode.checked,
+      rmtHighlightSelected: els.rmtHighlightSelected.checked,
+      minNumber,
+      maxNumber,
+      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 0, 10),
+      keepLevelFixed: els.keepLevelFixed.checked,
+      sessionSeconds: parseIntField(els.sessionSeconds.value, defaults.sessionSeconds, 30, 999999),
+      cueDurationMs: parseIntField(els.cueDurationMs.value, defaults.cueDurationMs, 0, 999999),
+      negationMode: els.negationMode.checked,
+      nBackMode: els.nBackMode.checked,
+      nBackSteps: parseIntField(els.nBackSteps.value, defaults.nBackSteps, 1, 9),
+      variableNBack: els.variableNBack.checked,
+      showStatsDuringSession: els.showStatsDuringSession.checked,
+      showRuleDuringStimulus: els.showRuleDuringStimulus.checked,
+      buzzerOnWrong: els.buzzerOnWrong.checked,
+    };
+  }
+
+  function getRulesForMode(mode) {
+    if (mode === 'multiPlus') return multiPlusRules;
+    if (mode === 'multi') return multiRules;
+    return classicRules;
+  }
+
+  function pairSameDifferent(left, right, expected) {
+    return { left, right, expected };
+  }
+
+  function pickDifferentPairFromList(list) {
+    const first = randomItem(list);
+    let second = randomItem(list);
+    let tries = 0;
+    while (second === first && tries < 20) {
+      second = randomItem(list);
+      tries += 1;
+    }
+    return [first, second];
+  }
+
+  function pickDifferentPairObject(list) {
+    const first = randomItem(list);
+    let second = randomItem(list);
+    let tries = 0;
+    while (second[0] === first[0] && second[1] === first[1] && tries < 20) {
+      second = randomItem(list);
+      tries += 1;
+    }
+    return [first, second];
+  }
+
+  function buildMeaningTrial(minNumber, maxNumber, targetSame, settings) {
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const systemA = randomItem(systems);
+    const systemB = systems.length > 1 ? randomItem(systems.filter((system) => system.id !== systemA.id)) : systemA;
+    if (targetSame) {
+      const value = randInt(minNumber, maxNumber);
+      return pairSameDifferent(formatNumberBySystem(value, systemA), formatNumberBySystem(value, systemB), 'same');
+    }
+    const a = randInt(minNumber, maxNumber);
+    let b = randInt(minNumber, maxNumber);
+    while (b === a) b = randInt(minNumber, maxNumber);
+    return pairSameDifferent(formatNumberBySystem(a, systemA), formatNumberBySystem(b, systemB), 'different');
+  }
+
+  function buildPhysicalTrial(minNumber, maxNumber, targetSame, settings) {
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const primarySystem = randomItem(systems);
+    const secondarySystem = systems.length > 1 ? randomItem(systems.filter((system) => system.id !== primarySystem.id)) : primarySystem;
+    if (targetSame) {
+      const values = uniqueValues(2, minNumber, maxNumber);
+      return pairSameDifferent(
+        formatNumberBySystem(values[0], primarySystem),
+        formatNumberBySystem(values[1], primarySystem),
+        'same',
+      );
+    }
+    const a = randInt(minNumber, maxNumber);
+    let b = randInt(minNumber, maxNumber);
+    while (b === a) b = randInt(minNumber, maxNumber);
+    return pairSameDifferent(
+      formatNumberBySystem(a, primarySystem),
+      formatNumberBySystem(b, secondarySystem),
+      'different',
+    );
+  }
+
+  function buildCategoricalTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [, items] = randomItem(categoryLibrary);
+      return pairSameDifferent(...shuffle(items).slice(0, 2), 'same');
+    }
+    const [catA, itemsA] = randomItem(categoryLibrary);
+    const [, itemsB] = randomItem(categoryLibrary.filter(([cat]) => cat !== catA));
+    return pairSameDifferent(randomItem(itemsA), randomItem(itemsB), 'different');
+  }
+
+  function buildActionObjectTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(actionObjectPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(actionObjectPairs);
+    const [, b2] = randomItem(actionObjectPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildPartWholeTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(partWholePairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(partWholePairs);
+    const [, b2] = randomItem(partWholePairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildColorTrial(_minNumber, _maxNumber, targetSame) {
+    const entries = Object.entries(colorGroups);
+    if (targetSame) {
+      const [, items] = randomItem(entries);
+      const [a, b] = shuffle(items).slice(0, 2);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [colorA, itemsA] = randomItem(entries);
+    const [, itemsB] = randomItem(entries.filter(([color]) => color !== colorA));
+    return pairSameDifferent(randomItem(itemsA), randomItem(itemsB), 'different');
+  }
+
+  function buildFunctionalTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(functionalPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(functionalPairs);
+    const [, b2] = randomItem(functionalPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildAntonymTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(antonymPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(antonymPairs);
+    const [, b2] = randomItem(antonymPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildSynonymTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(synonymPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(synonymPairs);
+    const [, b2] = randomItem(synonymPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildLocationTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(locationPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(locationPairs);
+    const [, b2] = randomItem(locationPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildMaterialTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(materialPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(materialPairs);
+    const [, b2] = randomItem(materialPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildSequenceTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(sequencePairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(sequencePairs);
+    const [, b2] = randomItem(sequencePairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildCauseEffectTrial(_minNumber, _maxNumber, targetSame) {
+    if (targetSame) {
+      const [a, b] = randomItem(causeEffectPairs);
+      return pairSameDifferent(a, b, 'same');
+    }
+    const [a1] = randomItem(causeEffectPairs);
+    const [, b2] = randomItem(causeEffectPairs);
+    return pairSameDifferent(a1, b2, 'different');
+  }
+
+  function buildMultiGridTrial(rule, settings, targetSame) {
+    const count = settings.stimuliCount;
+    const gridCols = chooseGridColumns(count);
+
+    const cueByRule = {
+      categorical: `Judge whether all ${count} stimuli belong to the same category.`,
+      actionObject: `Judge whether all ${count} stimuli come from the same action-object set.`,
+      partWhole: `Judge whether all ${count} stimuli come from the same part-whole set.`,
+      color: `Judge whether all ${count} stimuli belong to the same color group.`,
+      functional: `Judge whether all ${count} stimuli come from the same functional set.`,
+      antonyms: `Judge whether all ${count} stimuli come from the same antonym set.`,
+      synonyms: `Judge whether all ${count} stimuli come from the same synonym set.`,
+      location: `Judge whether all ${count} stimuli come from the same location set.`,
+      material: `Judge whether all ${count} stimuli come from the same material set.`,
+      sequence: `Judge whether all ${count} stimuli come from the same sequence set.`,
+      causeEffect: `Judge whether all ${count} stimuli come from the same cause-effect set.`,
+    };
+
+    function buildFromSingleSource(sourceItems) {
+      const items = Array.isArray(sourceItems) ? sourceItems.slice() : [];
+      if (!items.length) return [];
+      const shuffled = shuffle(items);
+      const out = [];
+      for (let i = 0; i < count; i += 1) out.push(shuffled[i % shuffled.length]);
+      return out;
+    }
+
+    function buildFromMultipleSources(sources, getItem) {
+      const selected = shuffle(sources).slice(0, Math.max(2, Math.min(sources.length, Math.max(2, Math.ceil(count / 2)))));
+      const out = [];
+      for (const source of selected) {
+        if (out.length >= count) break;
+        out.push(getItem(source));
+      }
+      while (out.length < count) {
+        out.push(getItem(randomItem(selected)));
+      }
+      return out;
+    }
+
+    if (rule.id === 'categorical') {
+      const entries = categoryLibrary.map(([category, items]) => ({ category, items }));
+      if (targetSame) {
+        const source = randomItem(entries);
+        const stimuli = buildFromSingleSource(source.items);
+        return {
+          type: 'grid',
+          rule,
+          expected: 'same',
+          stimuli,
+          highlightIndices: [],
+          gridCols,
+          cueLabel: rule.label,
+          cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+        };
+      }
+      const stimuli = buildFromMultipleSources(entries, (source) => randomItem(source.items));
+      return {
+        type: 'grid',
+        rule,
+        expected: 'different',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: rule.label,
+        cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+      };
+    }
+
+    if (rule.id === 'color') {
+      const entries = Object.entries(colorGroups).map(([color, items]) => ({ color, items }));
+      if (targetSame) {
+        const source = randomItem(entries);
+        const stimuli = buildFromSingleSource(source.items);
+        return {
+          type: 'grid',
+          rule,
+          expected: 'same',
+          stimuli,
+          highlightIndices: [],
+          gridCols,
+          cueLabel: rule.label,
+          cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+        };
+      }
+      const stimuli = buildFromMultipleSources(entries, (source) => randomItem(source.items));
+      return {
+        type: 'grid',
+        rule,
+        expected: 'different',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: rule.label,
+        cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+      };
+    }
+
+    const pairPools = {
+      actionObject: actionObjectPairs,
+      partWhole: partWholePairs,
+      functional: functionalPairs,
+      antonyms: antonymPairs,
+      synonyms: synonymPairs,
+      location: locationPairs,
+      material: materialPairs,
+      sequence: sequencePairs,
+      causeEffect: causeEffectPairs,
+    };
+
+    const pool = pairPools[rule.id];
+    if (!pool) {
+      return buildClassicGridTrial(randomItem(classicRules), settings, targetSame);
+    }
+
+    if (targetSame) {
+      const source = randomItem(pool);
+      const stimuli = buildFromSingleSource(source);
+      return {
+        type: 'grid',
+        rule,
+        expected: 'same',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: rule.label,
+        cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+      };
+    }
+
+    const stimuli = buildFromMultipleSources(pool, (source) => randomItem(source));
+    return {
+      type: 'grid',
+      rule,
+      expected: 'different',
+      stimuli,
+      highlightIndices: [],
+      gridCols,
+      cueLabel: rule.label,
+      cueText: cueByRule[rule.id] || `Judge whether all ${count} stimuli fit the current rule.`,
+    };
+  }
+
+
+  const PROGRESS_KEY = 'aposner_progress_v1';
+
+  function getLocalDateKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function defaultProgress() {
+    return {
+      totalSeconds: 0,
+      sessions: 0,
+      totalTrials: 0,
+      correct: 0,
+      wrong: 0,
+      longestSessionSeconds: 0,
+      bestAccuracy: 0,
+      trainedDates: [],
+      lastSessionAt: 0,
+    };
+  }
+
+  function readProgress() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PROGRESS_KEY) || 'null');
+      if (!raw || typeof raw !== 'object') return defaultProgress();
+      const base = defaultProgress();
+      return {
+        ...base,
+        ...raw,
+        totalSeconds: Math.max(0, Number(raw.totalSeconds) || 0),
+        sessions: Math.max(0, Number(raw.sessions) || 0),
+        totalTrials: Math.max(0, Number(raw.totalTrials) || 0),
+        correct: Math.max(0, Number(raw.correct) || 0),
+        wrong: Math.max(0, Number(raw.wrong) || 0),
+        longestSessionSeconds: Math.max(0, Number(raw.longestSessionSeconds) || 0),
+        bestAccuracy: Math.max(0, Math.min(100, Number(raw.bestAccuracy) || 0)),
+        trainedDates: Array.isArray(raw.trainedDates) ? [...new Set(raw.trainedDates.filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v)))].sort() : [],
+        lastSessionAt: Number(raw.lastSessionAt) || 0,
+      };
+    } catch (_) {
+      return defaultProgress();
+    }
+  }
+
+  function writeProgress(progress) {
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (_) {}
+  }
+
+  function getCurrentDayStreak(dates) {
+    const set = new Set(dates);
+    let cursor = new Date();
+    let streak = 0;
+    while (set.has(getLocalDateKey(cursor))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  function updateProgressUI() {
+    const progress = readProgress();
+    const totalAnswered = progress.correct + progress.wrong;
+    const avgAccuracy = totalAnswered ? Math.round((progress.correct / totalAnswered) * 100) : 0;
+    els.progressTotalTime.textContent = formatHMS(progress.totalSeconds);
+    els.progressDays.textContent = progress.trainedDates.length;
+    els.progressSessions.textContent = progress.sessions;
+    els.progressLongest.textContent = formatHMS(progress.longestSessionSeconds);
+    els.progressAvgAccuracy.textContent = `${avgAccuracy}%`;
+    els.progressBestAccuracy.textContent = `${Math.round(progress.bestAccuracy)}%`;
+    els.progressTrials.textContent = progress.totalTrials;
+    els.progressCorrect.textContent = progress.correct;
+    els.progressWrong.textContent = progress.wrong;
+    els.progressStreak.textContent = getCurrentDayStreak(progress.trainedDates);
+    els.progressLastSession.textContent = progress.lastSessionAt
+      ? `Last saved session: ${new Date(progress.lastSessionAt).toLocaleString()}.`
+      : 'No sessions recorded yet.';
+  }
+
+  function saveSessionProgress() {
+    if (!state.sessionStartAt || state.progressRecorded) return;
+    state.progressRecorded = true;
+    const endAt = Date.now();
+    const elapsedSeconds = Math.max(0, Math.floor((endAt - state.sessionStartAt) / 1000));
+    const total = state.correctCount + state.wrongCount;
+    const accuracy = total ? (state.correctCount / total) * 100 : 0;
+    const progress = readProgress();
+    progress.totalSeconds += elapsedSeconds;
+    progress.sessions += 1;
+    progress.totalTrials += total;
+    progress.correct += state.correctCount;
+    progress.wrong += state.wrongCount;
+    progress.longestSessionSeconds = Math.max(progress.longestSessionSeconds, elapsedSeconds);
+    progress.bestAccuracy = Math.max(progress.bestAccuracy, accuracy);
+    progress.lastSessionAt = endAt;
+    const today = getLocalDateKey(new Date(endAt));
+    if (!progress.trainedDates.includes(today)) progress.trainedDates.push(today);
+    progress.trainedDates.sort();
+    writeProgress(progress);
+    updateProgressUI();
+  }
+
+  function getTodayDisplay() {
+    els.todayDisplay.textContent = formatHMS(readDailySeconds());
+  }
+
+  function flushPlayTime() {
+    if (!state.running) return;
+    writeDailySeconds(readDailySeconds() + 1);
+    getTodayDisplay();
+  }
+
+  function openSettings() {
+    closeProgress();
+    els.settingsPanel.classList.add('open');
+    els.overlay.classList.add('open');
+  }
+
+  function closeSettings() {
+    els.settingsPanel.classList.remove('open');
+    els.overlay.classList.remove('open');
+  }
+
+  const MIN_LEVEL = 0;
+  const MAX_LEVEL = 10;
+  function clampLevel(level) {
+    return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.round(Number(level) || 0)));
+  }
+  function levelToWindow(level) {
+    // Level 0 = 2000ms, level 10 = 200ms (180ms per level)
+    return 2000 - (clampLevel(level) * 180);
+  }
+
+  function lockButtons(locked) {
+    const settings = readSettings();
+    const mainAnswered = Boolean(state.currentTrial?.mainAnswered);
+    const nBackAnswered = Boolean(state.currentTrial?.nBackAnswered);
+    els.sameBtn.disabled = locked || mainAnswered;
+    els.differentBtn.disabled = locked || mainAnswered;
+    els.nBackBtn.disabled = locked || !settings.nBackMode || nBackAnswered;
+  }
+
+  function hideStimulus() {
+    els.stimulusGrid.classList.add('hidden');
+    els.stimulusGrid.innerHTML = '';
+    els.stimulusGrid.style.removeProperty('--grid-cols');
+    // Distractors disappear at the same moment as the stimuli.
+    els.distractorLeft.textContent = '';
+    els.distractorRight.textContent = '';
+  }
+
+  function setFeedback(kind, text) {
+    els.feedback.className = `feedback ${kind}`;
+    els.feedback.textContent = text;
+    els.feedback.style.display = kind ? 'block' : 'none';
+  }
+
+  function applyTheme(themeName) {
+    const root = document.documentElement;
+    const body = document.body;
+    const themes = {
+      default: {
+        vars: {
+          '--bg': '#0e1222',
+          '--panel': '#161b31',
+          '--panel-2': '#1f2741',
+          '--text': '#eef3ff',
+          '--muted': '#aab5db',
+          '--accent': '#8da2ff',
+          '--accent-2': '#60dcc8',
+          '--danger': '#ff8d9d',
+          '--warn': '#ffd77f',
+          '--surface': 'rgba(21, 26, 44, .96)',
+          '--surface-2': 'rgba(29, 35, 58, .94)',
+          '--surface-3': 'rgba(37, 44, 74, .96)',
+          '--border': 'rgba(150, 166, 255, .20)',
+          '--chip-bg': 'rgba(255,255,255,.06)',
+          '--cue-bg': 'rgba(141, 162, 255, .11)',
+          '--grid-bg': 'rgba(255,255,255,.05)',
+          '--input-bg': 'rgba(11, 14, 27, .94)',
+          '--button-same-start': '#8fa4ff',
+          '--button-same-end': '#6377ff',
+          '--button-diff-start': '#60dcc8',
+          '--button-diff-end': '#21b59d',
+        },
+        background: 'radial-gradient(1200px 700px at 10% 10%, rgba(141,162,255,.16), transparent 45%), radial-gradient(900px 500px at 90% 15%, rgba(96,220,200,.10), transparent 40%), linear-gradient(180deg, #0b0f1a 0%, #10152a 100%)',
+      },
+      dark: {
+        vars: {
+          '--bg': '#090c14',
+          '--panel': '#12182a',
+          '--panel-2': '#182138',
+          '--text': '#f4f7ff',
+          '--muted': '#98a5c8',
+          '--accent': '#a0adff',
+          '--accent-2': '#6fd9c7',
+          '--danger': '#ff8892',
+          '--warn': '#f3d37f',
+          '--surface': 'rgba(17, 22, 35, .97)',
+          '--surface-2': 'rgba(24, 30, 48, .95)',
+          '--surface-3': 'rgba(31, 38, 61, .97)',
+          '--border': 'rgba(180, 190, 230, .14)',
+          '--chip-bg': 'rgba(255,255,255,.05)',
+          '--cue-bg': 'rgba(160, 173, 255, .10)',
+          '--grid-bg': 'rgba(255,255,255,.045)',
+          '--input-bg': 'rgba(8, 11, 18, .96)',
+          '--button-same-start': '#a0adff',
+          '--button-same-end': '#6678ff',
+          '--button-diff-start': '#6fd9c7',
+          '--button-diff-end': '#2aa8b4',
+        },
+        background: 'radial-gradient(1200px 700px at 10% 10%, rgba(255,255,255,.04), transparent 45%), radial-gradient(900px 500px at 90% 15%, rgba(160,173,255,.12), transparent 40%), linear-gradient(180deg, #05070d 0%, #0a1018 100%)',
+      },
+      cyan: {
+        vars: {
+          '--bg': '#061219',
+          '--panel': '#0d1e26',
+          '--panel-2': '#132b35',
+          '--text': '#e8feff',
+          '--muted': '#8ec7cf',
+          '--accent': '#2fe6ff',
+          '--accent-2': '#3cf0b8',
+          '--danger': '#ff7f8c',
+          '--warn': '#9cf6ff',
+          '--surface': 'rgba(11, 22, 29, .97)',
+          '--surface-2': 'rgba(16, 32, 41, .95)',
+          '--surface-3': 'rgba(21, 41, 53, .97)',
+          '--border': 'rgba(76, 222, 255, .18)',
+          '--chip-bg': 'rgba(255,255,255,.04)',
+          '--cue-bg': 'rgba(47, 230, 255, .10)',
+          '--grid-bg': 'rgba(255,255,255,.04)',
+          '--input-bg': 'rgba(7, 17, 22, .96)',
+          '--button-same-start': '#2fe6ff',
+          '--button-same-end': '#19b2e2',
+          '--button-diff-start': '#3cf0b8',
+          '--button-diff-end': '#20b28d',
+        },
+        background: 'radial-gradient(1200px 700px at 10% 10%, rgba(47,230,255,.18), transparent 45%), radial-gradient(900px 500px at 90% 15%, rgba(60,240,184,.10), transparent 40%), linear-gradient(180deg, #061219 0%, #091922 100%)',
+      },
+    };
+    const theme = themes[themeName] || themes.default;
+    Object.entries(theme.vars).forEach(([key, value]) => root.style.setProperty(key, value));
+    body.style.background = theme.background;
+    body.dataset.theme = themeName || 'default';
+  }
+
+  function updateCue(title, ruleLabel, helpText, negated = false) {
+    els.cueBox.classList.remove('trial-mode');
+    els.cueLabel.classList.remove('hidden');
+    els.cueHelp.classList.remove('hidden');
+    els.cueRule.classList.remove('rule-word');
+    els.cueRule.style.fontSize = '';
+    els.cueLabel.textContent = title;
+    els.cueRule.textContent = ruleLabel;
+    els.cueRule.classList.toggle('negated', Boolean(negated));
+    els.cueHelp.textContent = helpText;
+  }
+
+  function getRuleWord(trial) {
+    const rule = trial?.rule || {};
+    if (rule.word) return rule.word;
+    const label = trial?.cueLabel || rule.label || 'Rule';
+    return String(label).split(/[\s•-]+/)[0].toUpperCase();
+  }
+
+  const DISTRACTOR_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const DISTRACTOR_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+  const DISTRACTOR_SYMBOLS = ['#', '@', '%', '&', '*', '+', '=', '?', '!', '$', '§', '¶', '∆', '◊', '★', '✦', '~', '^', '▲', '●', '■', '♦', '÷', '×', '≠', '∞'];
+
+  function randomDistractor() {
+    const kind = Math.floor(Math.random() * 4);
+    if (kind === 0) return DISTRACTOR_LETTERS[Math.floor(Math.random() * DISTRACTOR_LETTERS.length)];
+    if (kind === 1) return String(Math.floor(Math.random() * 13));
+    if (kind === 2) return DISTRACTOR_NUMERALS[Math.floor(Math.random() * DISTRACTOR_NUMERALS.length)];
+    return DISTRACTOR_SYMBOLS[Math.floor(Math.random() * DISTRACTOR_SYMBOLS.length)];
+  }
+
+  function fitRuleWord() {
+    const el = els.cueRule;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    let guard = 0;
+    while (el.scrollWidth > el.clientWidth + 1 && size > 14 && guard < 60) {
+      size *= 0.94;
+      el.style.fontSize = `${size}px`;
+      guard += 1;
+    }
+  }
+
+  function showRuleWord(trial, topLabel = '') {
+    const label = topLabel || trial?.scopeLabel || '';
+    els.cueBox.classList.add('trial-mode');
+    els.cueLabel.textContent = label;
+    els.cueLabel.classList.toggle('hidden', !label);
+    els.cueHelp.textContent = '';
+    els.cueHelp.classList.add('hidden');
+    els.cueRule.textContent = getRuleWord(trial);
+    els.cueRule.classList.add('rule-word');
+    els.cueRule.classList.toggle('negated', Boolean(trial?.negated));
+    fitRuleWord();
+  }
+
+  function renderTrial(trial) {
+    els.stimulusGrid.innerHTML = '';
+    els.stimulusGrid.classList.remove('hidden');
+    els.stimulusGrid.style.setProperty('--grid-cols', String(trial.gridCols || 2));
+    els.stimulusGrid.classList.toggle('pair', trial.stimuli.length === 2);
+    // Distractors appear at the same moment as the stimuli.
+    if (!trial.distractors) trial.distractors = [randomDistractor(), randomDistractor()];
+    els.distractorLeft.textContent = trial.distractors[0];
+    els.distractorRight.textContent = trial.distractors[1];
+    trial.stimuli.forEach((stimulus, index) => {
+      const cell = document.createElement('div');
+      cell.className = 'stimulus';
+      cell.textContent = stimulus;
+      if (trial.highlightIndices && trial.highlightIndices.includes(index)) cell.classList.add('selected');
+      els.stimulusGrid.appendChild(cell);
+    });
+  }
+
+  function showResponseCue(trial, settings) {
+    if (settings.showRuleDuringStimulus) {
+      showRuleWord(trial);
+    } else {
+      updateCue('Respond now', 'Rule hidden during stimuli', 'Only the answer buttons and stimuli are shown in this mode.', false);
+    }
+  }
+
+  function getWritingSystemPool(count) {
+    const pool = [
+      { id: 'arabic', label: 'Arabic', format: (n) => String(n) },
+      { id: 'roman', label: 'Roman', format: (n) => toRoman(n) },
+      { id: 'latin', label: 'Latin', format: (n) => numberToIndexedLetters(n, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') },
+      { id: 'greek', label: 'Greek', format: (n) => numberToIndexedLetters(n, 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ') },
+      { id: 'cyrillic', label: 'Cyrillic', format: (n) => numberToIndexedLetters(n, 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ') },
+      { id: 'hebrew', label: 'Hebrew', format: (n) => numberToIndexedLetters(n, 'אבגדהוזחטיכלמנסעפצקרשת') },
+      { id: 'morse', label: 'Morse code', format: (n) => numberToMorseLetters(n) },
+    ];
+    return pool.slice(0, clamp(count, 2, pool.length));
+  }
+
+  function chooseGridColumns(count) {
+    if (count <= 2) return 2;
+    if (count === 3) return 3;
+    if (count === 4) return 2;
+    if (count === 5) return 3;
+    if (count === 6) return 3;
+    if (count === 7) return 4;
+    if (count === 8) return 4;
+    if (count === 9) return 3;
+    return 3;
+  }
+
+  function getGridMeta(count) {
+    const cols = chooseGridColumns(count);
+    const rows = Math.ceil(count / cols);
+    return { cols, rows };
+  }
+
+  function getGridSubsets(count, cols) {
+    const rows = Math.ceil(count / cols);
+    const subsets = [];
+
+    for (let row = 0; row < rows; row += 1) {
+      const indices = [];
+      for (let col = 0; col < cols; col += 1) {
+        const idx = row * cols + col;
+        if (idx < count) indices.push(idx);
+      }
+      if (indices.length >= 2) subsets.push({ kind: 'row', label: `row ${row + 1}`, indices });
+    }
+
+    for (let col = 0; col < cols; col += 1) {
+      const indices = [];
+      for (let row = 0; row < rows; row += 1) {
+        const idx = row * cols + col;
+        if (idx < count) indices.push(idx);
+      }
+      if (indices.length >= 2) subsets.push({ kind: 'column', label: `column ${col + 1}`, indices });
+    }
+
+    const mainDiag = [];
+    const limit = Math.min(rows, cols);
+    for (let i = 0; i < limit; i += 1) {
+      const idx = i * cols + i;
+      if (idx < count) mainDiag.push(idx);
+    }
+    if (mainDiag.length >= 2) subsets.push({ kind: 'diagonal', label: 'main diagonal', indices: mainDiag });
+
+    const antiDiag = [];
+    for (let i = 0; i < limit; i += 1) {
+      const idx = i * cols + (cols - 1 - i);
+      if (idx < count) antiDiag.push(idx);
+    }
+    if (antiDiag.length >= 2) subsets.push({ kind: 'diagonal', label: 'anti-diagonal', indices: antiDiag });
+
+    const corners = Array.from(new Set([
+      0,
+      cols - 1,
+      (rows - 1) * cols,
+      (rows - 1) * cols + (cols - 1),
+    ])).filter((idx) => idx >= 0 && idx < count);
+    if (corners.length >= 2) subsets.push({ kind: 'corners', label: 'corners', indices: corners });
+
+    return subsets;
+  }
+
+  function uniqueValues(count, min, max) {
+    const values = [];
+    let attempts = 0;
+    while (values.length < count && attempts < count * 40) {
+      const candidate = randInt(min, max);
+      if (!values.includes(candidate)) values.push(candidate);
+      attempts += 1;
+    }
+    while (values.length < count) {
+      values.push(max + values.length + 1);
+    }
+    return values;
+  }
+
+  function formatBySystem(value, kind) {
+    if (kind === 'arabic') return String(value);
+    if (kind === 'roman') return toRoman(value);
+    if (kind === 'words') return numberToWords(value);
+    return String(value);
+  }
+
+  function buildPairTrial(rule, settings, targetSame) {
+    const trial = rule.build(settings.minNumber, settings.maxNumber, targetSame, settings);
+    return {
+      type: 'pair',
+      rule,
+      expected: trial.expected,
+      stimuli: [trial.left, trial.right],
+      highlightIndices: [],
+      gridCols: 2,
+      cueLabel: rule.label,
+      cueText: rule.cue,
+    };
+  }
+
+  function buildClassicGridTrial(rule, settings, targetSame) {
+    const count = settings.stimuliCount;
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const gridCols = chooseGridColumns(count);
+
+    if (rule.id === 'meaning') {
+      if (targetSame) {
+        const value = randInt(settings.minNumber, settings.maxNumber);
+        const stimuli = Array.from({ length: count }, (_, i) => formatNumberBySystem(value, systems[i % systems.length]));
+        return {
+          type: 'grid',
+          rule,
+          expected: 'same',
+          stimuli,
+          highlightIndices: [],
+          gridCols,
+          cueLabel: rule.label,
+          cueText: count === 2 ? rule.cue : `Judge whether all ${count} stimuli mean the same number.`,
+        };
+      }
+      const values = uniqueValues(count, settings.minNumber, settings.maxNumber);
+      const stimuli = values.map((value, i) => formatNumberBySystem(value, systems[i % systems.length]));
+      return {
+        type: 'grid',
+        rule,
+        expected: 'different',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: rule.label,
+        cueText: count === 2 ? rule.cue : `Judge whether all ${count} stimuli mean the same number.`,
+      };
+    }
+
+    if (rule.id === 'physical') {
+      if (targetSame) {
+        const values = uniqueValues(count, settings.minNumber, settings.maxNumber);
+        const system = randomItem(systems);
+        const stimuli = values.map((value) => formatNumberBySystem(value, system));
+        return {
+          type: 'grid',
+          rule,
+          expected: 'same',
+          stimuli,
+          highlightIndices: [],
+          gridCols,
+          cueLabel: rule.label,
+          cueText: count === 2 ? rule.cue : `Judge whether all ${count} stimuli use the same writing system.`,
+        };
+      }
+
+      const values = uniqueValues(count, settings.minNumber, settings.maxNumber);
+      const primarySystem = randomItem(systems);
+      const secondarySystem = systems.length > 1 ? randomItem(systems.filter((system) => system.id !== primarySystem.id)) : primarySystem;
+      const stimuli = values.map((value, i) => formatNumberBySystem(value, i === 0 ? primarySystem : (i % 2 === 0 ? primarySystem : secondarySystem)));
+      return {
+        type: 'grid',
+        rule,
+        expected: 'different',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: rule.label,
+        cueText: count === 2 ? rule.cue : `Judge whether all ${count} stimuli use the same writing system.`,
+      };
+    }
+
+    const value = randInt(settings.minNumber, settings.maxNumber);
+    const systemsOrder = shuffle(systems);
+    const stimuli = Array.from({ length: count }, (_, i) => formatNumberBySystem(value, systemsOrder[i % systemsOrder.length]));
+    if (count > 1) stimuli[count - 1] = formatNumberBySystem(value, systemsOrder[(systemsOrder.length > 1 ? 1 : 0)]);
+    return {
+      type: 'grid',
+      rule,
+      expected: 'different',
+      stimuli,
+      highlightIndices: [],
+      gridCols,
+      cueLabel: rule.label,
+      cueText: count === 2 ? rule.cue : `Judge whether all ${count} stimuli use the same writing system.`,
+    };
+  }
+
+  function buildUniversalGridTrial(settings, targetSame) {
+    const count = settings.stimuliCount;
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const gridCols = chooseGridColumns(count);
+    if (targetSame) {
+      const value = randInt(settings.minNumber, settings.maxNumber);
+      const stimuli = Array.from({ length: count }, (_, i) => formatNumberBySystem(value, systems[i % systems.length]));
+      return {
+        type: 'grid',
+        rule: { word: 'MEANING', label: 'Grid trial', cue: `Judge whether all ${count} stimuli are the same.` },
+        expected: 'same',
+        stimuli,
+        highlightIndices: [],
+        gridCols,
+        cueLabel: `Grid ×${count}`,
+        cueText: `Judge whether all ${count} stimuli are the same.`,
+      };
+    }
+    const values = uniqueValues(count, settings.minNumber, settings.maxNumber);
+    const stimuli = values.map((value, i) => formatNumberBySystem(value, systems[i % systems.length]));
+    return {
+      type: 'grid',
+      rule: { word: 'MEANING', label: 'Grid trial', cue: `Judge whether all ${count} stimuli are the same.` },
+      expected: 'different',
+      stimuli,
+      highlightIndices: [],
+      gridCols,
+      cueLabel: `Grid ×${count}`,
+      cueText: `Judge whether all ${count} stimuli are the same.`,
+    };
+  }
+
+  function pickGridRule(settings, subsets) {
+    const available = [
+      ...classicRules.map((rule) => ({ ...rule, scope: 'whole' })),
+      ...rmtRules.map((rule) => ({ ...rule, scope: 'subset' })),
+    ].filter((rule) => {
+      if (rule.scope === 'whole') return true;
+      if (rule.relation === 'writingSystems') {
+        return subsets.some((subset) => subset.indices.length <= settings.writingSystemsCount);
+      }
+      return subsets.some((subset) => subset.indices.length >= 2);
+    });
+    return randomItem(available.length ? available : classicRules.map((rule) => ({ ...rule, scope: 'whole' })));
+  }
+
+  function buildRmtGridTrial(settings, targetSame) {
+    const count = settings.stimuliCount;
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const { cols } = getGridMeta(count);
+    const subsets = getGridSubsets(count, cols);
+    const rule = pickGridRule(settings, subsets);
+
+    if (rule.scope === 'whole') {
+      return buildClassicGridTrial(rule, settings, targetSame);
+    }
+
+    const candidateSubsets = rule.relation === 'writingSystems'
+      ? subsets.filter((subset) => subset.indices.length <= systems.length)
+      : subsets;
+
+    if (!candidateSubsets.length) {
+      return buildClassicGridTrial(randomItem(classicRules), settings, targetSame);
+    }
+
+    const subset = randomItem(candidateSubsets);
+    const ordered = subset.indices.slice().sort((a, b) => a - b);
+    const cells = Array.from({ length: count }, () => ({
+      value: randInt(settings.minNumber, settings.maxNumber),
+      system: randomItem(systems),
+    }));
+
+    if (rule.relation === 'increasing' || rule.relation === 'decreasing') {
+      const values = uniqueValues(ordered.length, settings.minNumber, settings.maxNumber).sort((a, b) => (rule.relation === 'increasing' ? a - b : b - a));
+      if (!targetSame && values.length >= 2) {
+        values[values.length - 1] = values[0];
+      }
+      ordered.forEach((idx, i) => {
+        cells[idx].value = values[i];
+        cells[idx].system = randomItem(systems);
+      });
+    } else if (rule.relation === 'allDifferent') {
+      const values = uniqueValues(ordered.length, settings.minNumber, settings.maxNumber);
+      if (!targetSame && values.length >= 2) values[values.length - 1] = values[0];
+      ordered.forEach((idx, i) => {
+        cells[idx].value = values[i];
+        cells[idx].system = randomItem(systems);
+      });
+    } else if (rule.relation === 'writingSystems') {
+      const usableSystems = systems.slice(0, Math.max(2, Math.min(systems.length, ordered.length)));
+      if (targetSame) {
+        const value = randInt(settings.minNumber, settings.maxNumber);
+        ordered.forEach((idx, i) => {
+          cells[idx].value = value;
+          cells[idx].system = usableSystems[i % usableSystems.length];
+        });
+      } else {
+        const value = randInt(settings.minNumber, settings.maxNumber);
+        ordered.forEach((idx, i) => {
+          cells[idx].value = value;
+          cells[idx].system = usableSystems[i % Math.min(usableSystems.length, 2)];
+        });
+      }
+    }
+
+    const kindLabels = {
+      row: 'Rows',
+      column: 'Columns',
+      diagonal: 'Diagonals',
+      corners: 'Corners',
+    };
+    const highlightSelected = settings.rmtHighlightSelected;
+    const cueLabel = highlightSelected ? `${subset.label} • ${rule.label}` : `${kindLabels[subset.kind] || 'Subsets'} • ${rule.label}`;
+    const cueText = highlightSelected
+      ? `Judge whether the ${subset.label} ${rule.cue}`
+      : `Judge whether the ${kindLabels[subset.kind]?.toLowerCase() || 'subsets'} ${rule.cue}`;
+
+    return {
+      type: 'grid',
+      rule,
+      expected: targetSame ? 'same' : 'different',
+      stimuli: cells.map((cell) => formatNumberBySystem(cell.value, cell.system)),
+      highlightIndices: highlightSelected ? subset.indices : [],
+      gridCols: cols,
+      cueLabel,
+      cueText,
+      scopeLabel: highlightSelected ? subset.label : (kindLabels[subset.kind] || 'Subsets'),
+    };
+  }
+
+  function buildTrial() {
+    const settings = readSettings();
+    const targetSame = Math.random() < 0.5;
+    const rules = getRulesForMode(settings.mode);
+    const rule = randomItem(rules);
+
+    if (settings.stimuliCount > 2) {
+      if (settings.mode === 'classic') {
+        if (settings.rmtMode) return buildRmtGridTrial(settings, targetSame);
+        return buildClassicGridTrial(rule.id === 'meaning' || rule.id === 'physical' ? rule : randomItem(classicRules), settings, targetSame);
+      }
+
+      if (rule.id === 'meaning' || rule.id === 'physical') {
+        return buildClassicGridTrial(rule, settings, targetSame);
+      }
+
+      return buildMultiGridTrial(rule, settings, targetSame);
+    }
+
+    return buildPairTrial(rule, settings, targetSame);
+  }
+
+  function getTrialModeLabel(settings) {
+    if (settings.stimuliCount > 2) {
+      if (settings.mode === 'classic') return settings.rmtMode ? `Classic + RMT grid ×${settings.stimuliCount}` : `Classic grid ×${settings.stimuliCount}`;
+      if (settings.mode === 'multi') return `Multi grid ×${settings.stimuliCount}`;
+      return `Multi+ grid ×${settings.stimuliCount}`;
+    }
+    if (settings.mode === 'classic') return 'Classic';
+    if (settings.mode === 'multi') return 'Multi';
+    return 'Multi+';
+  }
+
+  function updateHud() {
+    const settings = readSettings();
+    const total = state.correctCount + state.wrongCount;
+    const accuracy = total ? Math.round((state.correctCount / total) * 100) : 0;
+    applyTheme(settings.theme);
+    if (!state.running) state.level = clampLevel(settings.startingLevel);
+    els.levelDisplay.textContent = state.level;
+    renderLevelPicker();
+    els.mainStartBtn.disabled = state.running;
+    els.mainStopBtn.disabled = !state.running;
+    els.accuracyDisplay.textContent = `${accuracy}%`;
+    els.modeInfo.textContent = `Mode: ${getTrialModeLabel(settings)}`;
+    const displayN = state.running ? state.currentNBack : settings.nBackSteps;
+    els.nBackInfo.textContent = `N-back: n=${displayN}`;
+    els.nBackInfo.classList.toggle('hidden', !settings.nBackMode);
+    els.buttonRow.classList.toggle('nback-enabled', Boolean(settings.nBackMode));
+    els.nBackBtn.classList.toggle('hidden', !settings.nBackMode);
+    getTodayDisplay();
+    if (state.running && !settings.showStatsDuringSession) {
+      els.accuracyChip.classList.add('hidden');
+      els.progressInfo.classList.add('hidden');
+    } else {
+      els.accuracyChip.classList.remove('hidden');
+      els.progressInfo.classList.remove('hidden');
+      els.progressInfo.textContent = `Trials: ${total} • Mistakes: ${state.wrongCount} • Streak: ${state.consecutiveMistakes}`;
+    }
+    renderSessionLimit();
+    if (sessionLimit.type === 'questions') {
+      els.timeDisplay.textContent = `${Math.min(state.trialCount, sessionLimit.questions)}/${sessionLimit.questions}`;
+    } else {
+      els.timeDisplay.textContent = state.running
+        ? formatCountdown(Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000)))
+        : formatCountdown(Math.round(sessionLimit.minutes * 60));
+    }
+  }
+
+  function playBuzzer() {
+    const settings = readSettings();
+    if (!settings.buzzerOnWrong) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+      if (!state.audioContext) state.audioContext = new AudioContextClass();
+      const ctx = state.audioContext;
+      if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+      const start = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = 'square';
+      osc2.type = 'square';
+      osc1.frequency.setValueAtTime(160, start);
+      osc1.frequency.exponentialRampToValueAtTime(95, start + 0.16);
+      osc2.frequency.setValueAtTime(220, start);
+      osc2.frequency.exponentialRampToValueAtTime(120, start + 0.16);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.12, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.18);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(start);
+      osc2.start(start);
+      osc1.stop(start + 0.2);
+      osc2.stop(start + 0.2);
+    } catch (_) {
+      // ignore audio errors silently
+    }
+  }
+
+  function maybeAdjustVariableNBack(settings) {
+    if (!settings.nBackMode || !settings.variableNBack) return null;
+    if (state.trialCount === 0 || state.trialCount % 8 !== 0) return null;
+
+    const recent = state.trialResults.slice(-8);
+    const accuracy = recent.length
+      ? recent.filter(Boolean).length / recent.length
+      : 0;
+    const roll = Math.random();
+    let next = state.currentNBack;
+
+    if (accuracy >= 0.875) {
+      if (roll < 0.65) next += 1;
+      else if (roll < 0.80) next -= 1;
+    } else if (accuracy <= 0.625) {
+      if (roll < 0.65) next -= 1;
+      else if (roll < 0.80) next += 1;
+    } else {
+      if (roll < 0.30) next += 1;
+      else if (roll < 0.60) next -= 1;
+    }
+
+    next = clamp(next, 1, 9);
+    if (next === state.currentNBack) return null;
+
+    state.currentNBack = next;
+    return { n: next, accuracy: Math.round(accuracy * 100) };
+  }
+
+  function recordTrial(correct, feedbackText) {
+    state.trialCount += 1;
+    state.trialResults.push(correct);
+    if (state.trialResults.length > 32) state.trialResults.shift();
+
+    if (correct) {
+      state.correctCount += 1;
+      state.consecutiveMistakes = 0;
+      setFeedback('good', feedbackText || 'Correct');
+    } else {
+      state.wrongCount += 1;
+      state.consecutiveMistakes += 1;
+      setFeedback('bad', feedbackText || 'Missed');
+      playBuzzer();
+    }
+
+    const settings = readSettings();
+    if (!settings.keepLevelFixed) {
+      if (state.consecutiveMistakes >= 3) {
+        state.level = Math.max(MIN_LEVEL, state.level - 1);
+        state.consecutiveMistakes = 0;
+        state.lastPromotionAt = state.trialCount;
+        updateCue('LEVEL DOWN', `Now level ${state.level}`, 'Three consecutive mistakes lowered the level.');
+      } else if (state.trialResults.length >= 32) {
+        const mistakes = state.trialResults.filter((v) => !v).length;
+        if (mistakes < 4 && state.trialCount - state.lastPromotionAt >= 32 && state.level < MAX_LEVEL) {
+          state.level += 1;
+          state.lastPromotionAt = state.trialCount;
+          updateCue('LEVEL UP', `Now level ${state.level}`, 'Your recent performance earned an increase in speed.');
+        }
+      }
+    } else {
+      state.consecutiveMistakes = 0;
+    }
+
+    const nChange = maybeAdjustVariableNBack(settings);
+    updateHud();
+    if (nChange) {
+      state.nBackModeChangedMessage = true;
+      els.nBackInfo.textContent = `N-back: n=${nChange.n}`;
+      setFeedback('good', `N-back changed to n=${nChange.n} (${nChange.accuracy}% recent accuracy)`);
+    }
+  }
+
+  function finishTrial(outcome) {
+    if (state.responseTimer) clearTimeout(state.responseTimer);
+    const settings = readSettings();
+    const mainLabel = outcome.mainChoice === 'same'
+      ? 'SAME'
+      : outcome.mainChoice === 'different'
+        ? 'DIFFERENT'
+        : 'No SAME/DIFFERENT answer';
+    let feedbackText = outcome.mainCorrect ? `Correct — ${mainLabel}` : `Missed — ${mainLabel}`;
+
+    if (settings.nBackMode) {
+      if (outcome.nBackCorrect) {
+        feedbackText += outcome.nBackExpected ? ' • N-back match' : ' • N-back: no match';
+      } else {
+        feedbackText += outcome.nBackExpected ? ' • N-back match missed' : ' • False N-back match';
+      }
+    }
+
+    recordTrial(outcome.correct, feedbackText);
+    if (sessionLimit.type === 'questions' && state.trialCount >= sessionLimit.questions) {
+      endSession();
+      return;
+    }
+    setTimeout(() => {
+      if (state.running) nextTrial();
+    }, 140);
+  }
+
+  function buildTrialOutcome(trial) {
+    const mainChoice = trial.mainChoice || null;
+    const mainCorrect = mainChoice === trial.expected;
+    const nBackExpected = Boolean(trial.nBackExpected);
+    const nBackCorrect = !trial.nBackMode || (nBackExpected === Boolean(trial.nBackAnswered));
+    return {
+      correct: mainCorrect && nBackCorrect,
+      mainChoice,
+      mainCorrect,
+      nBackExpected,
+      nBackCorrect,
+    };
+  }
+
+  function maybeFinishTrialAfterResponse() {
+    const trial = state.currentTrial;
+    if (!trial) return;
+    const settings = readSettings();
+    if (!settings.nBackMode) {
+      state.responseLocked = true;
+      lockButtons(true);
+      finishTrial(buildTrialOutcome(trial));
+      return;
+    }
+
+    if (trial.mainAnswered && trial.nBackAnswered) {
+      state.responseLocked = true;
+      lockButtons(true);
+      finishTrial(buildTrialOutcome(trial));
+    }
+  }
+
+  function respond(choice) {
+    if (!state.running || state.phase !== 'response' || state.responseLocked || !state.currentTrial) return;
+    if (state.currentTrial.mainAnswered) return;
+
+    state.currentTrial.mainAnswered = true;
+    state.currentTrial.mainChoice = choice;
+    lockButtons(false);
+    maybeFinishTrialAfterResponse();
+  }
+
+  function respondNBack() {
+    if (!state.running || state.phase !== 'response' || state.responseLocked || !state.currentTrial) return;
+    if (!readSettings().nBackMode || state.currentTrial.nBackAnswered) return;
+
+    state.currentTrial.nBackAnswered = true;
+    lockButtons(false);
+    maybeFinishTrialAfterResponse();
+  }
+
+  function applyNegation(trial, settings) {
+    const negated = Boolean(settings.negationMode && Math.random() < 0.5);
+    return {
+      ...trial,
+      negated,
+      expected: negated ? (trial.expected === 'same' ? 'different' : 'same') : trial.expected,
+    };
+  }
+
+  function getTrialRuleKey(trial) {
+    return trial?.nBackRuleKey || trial?.rule?.id || trial?.cueLabel || 'unknown-rule';
+  }
+
+  function attachNBackTarget(trial, settings) {
+    if (!settings.nBackMode) return trial;
+
+    const ruleKey = getTrialRuleKey(trial);
+    const n = clamp(state.currentNBack || settings.nBackSteps, 1, 9);
+    const historyIndex = state.nBackHistory.length - n;
+    const nBackExpected = historyIndex >= 0 && state.nBackHistory[historyIndex] === ruleKey;
+
+    state.nBackHistory.push(ruleKey);
+    if (state.nBackHistory.length > 64) state.nBackHistory.shift();
+
+    return {
+      ...trial,
+      nBackMode: true,
+      nBackN: n,
+      nBackRuleKey: ruleKey,
+      nBackExpected,
+      mainAnswered: false,
+      nBackAnswered: false,
+      mainChoice: null,
+    };
+  }
+
+  function nextTrial() {
+    if (!state.running) return;
+    if (Date.now() >= state.sessionEndsAt) {
+      endSession();
+      return;
+    }
+
+    const settings = readSettings();
+    if (settings.nBackMode && !settings.variableNBack) {
+      state.currentNBack = settings.nBackSteps;
+    }
+    let trial = applyNegation(buildTrial(), settings);
+    trial = attachNBackTarget(trial, settings);
+    state.currentTrial = trial;
+    state.responseLocked = false;
+    lockButtons(true);
+    hideStimulus();
+    setFeedback('', '');
+
+    clearTimeout(state.cueTimer);
+    clearTimeout(state.responseTimer);
+
+    const beginResponsePhase = () => {
+      if (!state.running) return;
+      state.phase = 'response';
+      renderTrial(state.currentTrial);
+      showResponseCue(state.currentTrial, settings);
+      lockButtons(false);
+
+      const windowMs = levelToWindow(state.level);
+      state.responseTimer = setTimeout(() => {
+        if (!state.running || state.responseLocked) return;
+        state.responseLocked = true;
+        lockButtons(true);
+        finishTrial(buildTrialOutcome(state.currentTrial));
+      }, windowMs);
+    };
+
+    if (settings.cueDurationMs <= 0) {
+      beginResponsePhase();
+      return;
+    }
+
+    state.phase = 'cue';
+    showRuleWord(state.currentTrial, state.nBackModeChangedMessage ? `N-back changed • n=${state.currentNBack}` : '');
+    state.nBackModeChangedMessage = false;
+    state.cueTimer = setTimeout(beginResponsePhase, settings.cueDurationMs);
+  }
+
+  function startTimers(sessionSeconds) {
+    clearInterval(state.sessionTimer);
+    clearInterval(state.playTimer);
+    state.sessionEndsAt = Date.now() + sessionSeconds * 1000;
+    state.sessionTimer = setInterval(() => {
+      if (!state.running) return;
+      if (sessionLimit.type === 'questions') return;
+      const secondsLeft = Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000));
+      els.timeDisplay.textContent = formatCountdown(secondsLeft);
+      if (secondsLeft <= 0) endSession();
+    }, 200);
+    state.playTimer = setInterval(() => {
+      if (state.running) flushPlayTime();
+    }, 1000);
+  }
+
+  function startSession() {
+    readLimitInput();
+    if (sessionLimit.type === 'time') els.sessionSeconds.value = String(Math.max(30, Math.round(sessionLimit.minutes * 60)));
+    saveSettings();
+    const settings = readSettings();
+    clearTimeout(state.cueTimer);
+    clearTimeout(state.responseTimer);
+    clearInterval(state.sessionTimer);
+    clearInterval(state.playTimer);
+
+    state.running = true;
+    state.phase = 'idle';
+    state.level = clampLevel(settings.startingLevel);
+    state.sessionStartLevel = state.level;
+    state.trialCount = 0;
+    state.correctCount = 0;
+    state.wrongCount = 0;
+    state.consecutiveMistakes = 0;
+    state.trialResults = [];
+    state.lastPromotionAt = 0;
+    state.currentTrial = null;
+    state.responseLocked = false;
+    state.nBackHistory = [];
+    state.currentNBack = settings.nBackSteps;
+    state.nBackModeChangedMessage = false;
+    state.sessionStartAt = Date.now();
+    state.progressRecorded = false;
+    els.resultsOverlay.classList.remove('open');
+    closeSettings();
+    lockButtons(true);
+    setFeedback('', '');
+    updateCue('Session starting', 'Get ready', 'The first trial will appear immediately.');
+    updateHud();
+    startTimers(sessionLimit.type === 'time' ? Math.max(1, Math.round(sessionLimit.minutes * 60)) : 86400);
+    nextTrial();
+  }
+
+  const LIMIT_KEY = 'posner-session-limit-v1';
+  const sessionLimit = (() => {
+    const base = { type: 'time', minutes: 3, questions: 50 };
+    try {
+      const saved = JSON.parse(localStorage.getItem(LIMIT_KEY) || 'null');
+      if (saved && typeof saved === 'object') Object.assign(base, saved);
+    } catch (_) {}
+    if (base.type !== 'questions') base.type = 'time';
+    return base;
+  })();
+
+  function saveSessionLimit() {
+    try { localStorage.setItem(LIMIT_KEY, JSON.stringify(sessionLimit)); } catch (_) {}
+  }
+
+  function readLimitInput() {
+    const raw = parseFloat(String(els.limitValue.value).replace(',', '.'));
+    if (sessionLimit.type === 'time') {
+      if (Number.isFinite(raw) && raw > 0) sessionLimit.minutes = Math.min(600, Math.round(raw * 100) / 100);
+    } else if (Number.isFinite(raw) && raw >= 1) {
+      sessionLimit.questions = Math.min(100000, Math.round(raw));
+    }
+    saveSessionLimit();
+  }
+
+  function renderSessionLimit() {
+    const isTime = sessionLimit.type === 'time';
+    els.limitTimeBtn.classList.toggle('active', isTime);
+    els.limitQuestionsBtn.classList.toggle('active', !isTime);
+    if (document.activeElement !== els.limitValue) {
+      els.limitValue.value = String(isTime ? sessionLimit.minutes : sessionLimit.questions);
+    }
+    els.limitUnit.textContent = isTime ? 'min' : 'questions';
+    [els.limitTimeBtn, els.limitQuestionsBtn, els.limitValue].forEach((el) => { el.disabled = state.running; });
+  }
+
+  function setLimitType(type) {
+    if (state.running) return;
+    readLimitInput();
+    sessionLimit.type = type === 'questions' ? 'questions' : 'time';
+    saveSessionLimit();
+    renderSessionLimit();
+    updateHud();
+  }
+
+  function renderLevelPicker() {
+    if (!els.levelButtons.children.length) {
+      for (let lvl = MIN_LEVEL; lvl <= MAX_LEVEL; lvl += 1) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'level-btn';
+        btn.textContent = String(lvl);
+        btn.dataset.level = String(lvl);
+        btn.title = `${(levelToWindow(lvl) / 1000).toFixed(2)}s to respond`;
+        btn.addEventListener('click', () => setLevel(lvl));
+        els.levelButtons.appendChild(btn);
+      }
+    }
+    const current = clampLevel(state.level);
+    Array.from(els.levelButtons.children).forEach((btn) => {
+      btn.classList.toggle('active', Number(btn.dataset.level) === current);
+    });
+    els.levelReadout.textContent = `${current} • ${(levelToWindow(current) / 1000).toFixed(2)}s`;
+  }
+
+  function setLevel(level) {
+    state.level = clampLevel(level);
+    els.startingLevel.value = String(state.level);
+    saveSettings();
+    state.lastPromotionAt = state.trialCount;
+    state.consecutiveMistakes = 0;
+    updateHud();
+  }
+
+  function formatDuration(ms) {
+    const total = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(total / 60);
+    const sec = String(total % 60).padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  function buildResultsText({ manual, total, accuracy }) {
+    const settings = readSettings();
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const startLevel = clampLevel(state.sessionStartLevel ?? state.level);
+    const endLevel = clampLevel(state.level);
+    const secs = (lvl) => `${(levelToWindow(lvl) / 1000).toFixed(2)}s`;
+    const limit = sessionLimit.type === 'questions'
+      ? `${sessionLimit.questions} questions`
+      : `${sessionLimit.minutes} min`;
+    const extras = [];
+    if (settings.negationMode) extras.push('Negation');
+    if (settings.nBackMode) extras.push(`N-back (n=${settings.nBackSteps}${settings.variableNBack ? ', variable' : ''})`);
+    if (settings.keepLevelFixed) extras.push('Fixed level');
+    const lines = [
+      `APOSNER Trainer — ${date}${manual ? ' (stopped early)' : ''}`,
+      `Accuracy: ${accuracy}% (${state.correctCount}/${total} correct)`,
+      `Questions: ${total} | Mistakes: ${state.wrongCount}`,
+      startLevel === endLevel
+        ? `Level: ${endLevel} (${secs(endLevel)})`
+        : `Level: ${startLevel} → ${endLevel} (${secs(startLevel)} → ${secs(endLevel)})`,
+      `Mode: ${getTrialModeLabel(settings)}${extras.length ? ` + ${extras.join(', ')}` : ''}`,
+      `Session: ${limit} | Time played: ${formatDuration(Date.now() - (state.sessionStartAt || Date.now()))}`,
+    ];
+    return lines.join('\n');
+  }
+
+  async function copyResults() {
+    const text = state.lastResultsText || '';
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { ok = document.execCommand('copy'); } catch (__) { ok = false; }
+      ta.remove();
+    }
+    els.resultsCopyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+    els.resultsCopyBtn.classList.toggle('copied', ok);
+    setTimeout(() => {
+      els.resultsCopyBtn.textContent = 'Copy results';
+      els.resultsCopyBtn.classList.remove('copied');
+    }, 1800);
+  }
+
+  function stopSession() {
+    if (!state.running) return;
+    endSession({ manual: true });
+  }
+
+  function endSession({ manual = false } = {}) {
+    if (!state.running) return;
+    state.running = false;
+    clearTimeout(state.cueTimer);
+    clearTimeout(state.responseTimer);
+    clearInterval(state.sessionTimer);
+    clearInterval(state.playTimer);
+    flushPlayTime();
+    saveSessionProgress();
+    hideStimulus();
+    lockButtons(true);
+
+    const total = state.correctCount + state.wrongCount;
+    const accuracy = total ? Math.round((state.correctCount / total) * 100) : 0;
+    els.finalLevel.textContent = state.level;
+    els.finalAccuracy.textContent = `${accuracy}%`;
+    els.finalTrials.textContent = total;
+    els.finalMistakes.textContent = state.wrongCount;
+    els.resultsTitle.textContent = manual ? 'Session stopped' : 'Session complete';
+    els.resultsSummary.textContent = `${state.correctCount} correct out of ${total}.`;
+    state.lastResultsText = buildResultsText({ manual, total, accuracy });
+    els.resultsCopyBtn.textContent = 'Copy results';
+    els.resultsCopyBtn.classList.remove('copied');
+    els.resultsOverlay.classList.add('open');
+    updateCue(manual ? 'Stopped' : 'Session complete', 'Press START', `${total} questions • ${accuracy}% accuracy`);
+    updateHud();
+  }
+
+  function resetDefaults() {
+    els.modeSelect.value = defaults.mode;
+    els.themeSelect.value = defaults.theme;
+    els.stimuliCount.value = defaults.stimuliCount;
+    els.writingSystemsCount.value = defaults.writingSystemsCount;
+    els.rmtMode.checked = defaults.rmtMode;
+    els.rmtHighlightSelected.checked = defaults.rmtHighlightSelected;
+    els.minNumber.value = defaults.minNumber;
+    els.maxNumber.value = defaults.maxNumber;
+    els.startingLevel.value = defaults.startingLevel;
+    els.keepLevelFixed.checked = defaults.keepLevelFixed;
+    els.sessionSeconds.value = defaults.sessionSeconds;
+    els.cueDurationMs.value = defaults.cueDurationMs;
+    els.negationMode.checked = defaults.negationMode;
+    els.nBackMode.checked = defaults.nBackMode;
+    els.nBackSteps.value = defaults.nBackSteps;
+    els.variableNBack.checked = defaults.variableNBack;
+    els.showStatsDuringSession.checked = defaults.showStatsDuringSession;
+    els.showRuleDuringStimulus.checked = defaults.showRuleDuringStimulus;
+    els.buzzerOnWrong.checked = defaults.buzzerOnWrong;
+    saveSettings();
+    updateHud();
+  }
+
+  function handleKeydown(e) {
+    if (!state.running || state.phase !== 'response' || state.responseLocked) return;
+    if (e.key === 's' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      respond('same');
+    }
+    if (e.key === 'd' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      respond('different');
+    }
+    if (e.key === 'n') {
+      e.preventDefault();
+      respondNBack();
+    }
+  }
+
+  function bindSettingUpdate() {
+    saveSettings();
+    const settings = readSettings();
+    if (!state.running) {
+      state.currentNBack = settings.nBackSteps;
+      state.nBackHistory = [];
+    }
+    updateHud();
+  }
+
+  els.openSettings.addEventListener('click', openSettings);
+  els.closeSettings.addEventListener('click', closeSettings);
+  els.overlay.addEventListener('click', () => { closeSettings(); closeProgress(); });
+  els.mainStartBtn.addEventListener('click', startSession);
+  els.mainStopBtn.addEventListener('click', stopSession);
+  els.resultsCloseBtn.addEventListener('click', () => els.resultsOverlay.classList.remove('open'));
+  els.resultsCopyBtn.addEventListener('click', copyResults);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && els.resultsOverlay.classList.contains('open')) els.resultsOverlay.classList.remove('open');
+  });
+  els.limitTimeBtn.addEventListener('click', () => setLimitType('time'));
+  els.limitQuestionsBtn.addEventListener('click', () => setLimitType('questions'));
+  els.limitValue.addEventListener('change', () => { readLimitInput(); renderSessionLimit(); updateHud(); });
+  els.limitValue.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { els.limitValue.blur(); } });
+  els.resetDefaultsBtn.addEventListener('click', resetDefaults);
+  els.sameBtn.addEventListener('click', () => respond('same'));
+  els.differentBtn.addEventListener('click', () => respond('different'));
+  els.nBackBtn.addEventListener('click', respondNBack);
+  document.addEventListener('keydown', handleKeydown);
+  window.addEventListener('beforeunload', () => {
+    clearTimeout(state.cueTimer);
+    clearTimeout(state.responseTimer);
+    clearInterval(state.sessionTimer);
+    clearInterval(state.playTimer);
+    if (state.running) {
+      flushPlayTime();
+      saveSessionProgress();
+    }
+  });
+
+  function openProgress() {
+    updateProgressUI();
+    els.progressPanel.classList.add('open');
+    els.overlay.classList.add('open');
+  }
+
+  function closeProgress() {
+    els.progressPanel.classList.remove('open');
+    els.overlay.classList.remove('open');
+  }
+
+  els.openProgress.addEventListener('click', openProgress);
+  els.closeProgress.addEventListener('click', closeProgress);
+  els.resetProgressBtn.addEventListener('click', () => {
+    writeProgress(defaultProgress());
+    updateProgressUI();
+  });
+
+  [els.modeSelect, els.themeSelect, els.stimuliCount, els.writingSystemsCount, els.rmtMode, els.rmtHighlightSelected, els.minNumber, els.maxNumber, els.startingLevel, els.keepLevelFixed, els.sessionSeconds, els.cueDurationMs, els.negationMode, els.nBackMode, els.nBackSteps, els.variableNBack, els.showStatsDuringSession, els.showRuleDuringStimulus, els.buzzerOnWrong].forEach((el) => {
+    el.addEventListener('change', bindSettingUpdate);
+    if (el.tagName === 'INPUT') el.addEventListener('input', saveSettings);
+  });
+
+  const restoredSettings = loadSavedSettings();
+  if (!restoredSettings) resetDefaults();
+  updateHud();
+  getTodayDisplay();
+  updateCue('Ready', 'Press START', 'Pick a level and session length above, then press START. The ⚙ menu has mode, theme and rule options.');
+  updateHud();
+  hideStimulus();
+  lockButtons(true);
+  updateProgressUI();
+})();
+</script>
+
+</body>
+</html>

@@ -935,9 +935,9 @@
         <div class="cue-box" id="cueBox">
           <div class="cue-distractor" id="distractorLeft" aria-hidden="true"></div>
           <div class="cue-center">
-            <div class="cue-label" id="cueLabel">Ready</div>
-            <div class="cue-rule" id="cueRule">Press START</div>
-            <div class="cue-help" id="cueHelp">Pick a level and session length above, then press START.</div>
+            <div class="cue-label hidden" id="cueLabel"></div>
+            <div class="cue-rule" id="cueRule">Waiting for session to begin</div>
+            <div class="cue-help hidden" id="cueHelp"></div>
           </div>
           <div class="cue-distractor" id="distractorRight" aria-hidden="true"></div>
         </div>
@@ -2176,8 +2176,8 @@
 
   function updateCue(title, ruleLabel, helpText, negated = false) {
     els.cueBox.classList.remove('trial-mode');
-    els.cueLabel.classList.remove('hidden');
-    els.cueHelp.classList.remove('hidden');
+    els.cueLabel.classList.toggle('hidden', !title);
+    els.cueHelp.classList.toggle('hidden', !helpText);
     els.cueRule.classList.remove('rule-word');
     els.cueRule.style.fontSize = '';
     els.cueLabel.textContent = title;
@@ -3139,7 +3139,7 @@
     els.resultsCopyBtn.textContent = 'Copy results';
     els.resultsCopyBtn.classList.remove('copied');
     els.resultsOverlay.classList.add('open');
-    updateCue(manual ? 'Stopped' : 'Session complete', 'Press START', `${total} questions • ${accuracy}% accuracy`);
+    updateCue('', 'Waiting for session to begin', '');
     updateHud();
   }
 
@@ -3250,7 +3250,7 @@
   if (!restoredSettings) resetDefaults();
   updateHud();
   getTodayDisplay();
-  updateCue('Ready', 'Press START', 'Pick a level and session length above, then press START. The ⚙ menu has mode, theme and rule options.');
+  updateCue('', 'Waiting for session to begin', '');
   updateHud();
   hideStimulus();
   lockButtons(true);

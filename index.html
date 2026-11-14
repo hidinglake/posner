@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>aPOSNER Training Tool</title>
+  <title>POSNER</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet" />
@@ -185,9 +185,10 @@
 
     .title-wrap h1 {
       margin: 0;
-      font-size: 1rem;
-      letter-spacing: .04em;
-      text-transform: uppercase;
+      font-family: "Libre Baskerville", Baskerville, "Baskerville Old Face", Georgia, "Times New Roman", serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: .16em;
       line-height: 1.1;
     }
     .title-wrap p {
@@ -237,9 +238,9 @@
     }
 
     .stage {
-      width: min(860px, 100%);
-      min-height: min(720px, 100%);
-      height: min(720px, 100%);
+      width: 100%;
+      min-height: 0;
+      height: auto;
       border-radius: 26px;
       background: rgba(255,255,255,.05);
       border: 1px solid rgba(255,255,255,.08);
@@ -247,7 +248,8 @@
       backdrop-filter: blur(16px);
       padding: 16px;
       display: grid;
-      grid-template-rows: auto auto auto auto 1fr;
+      grid-template-rows: auto;
+      align-content: start;
       gap: 12px;
       --cue-h: clamp(104px, 18vh, 160px);
       position: relative;
@@ -393,6 +395,77 @@
     .cue-box { min-height: var(--cue-h); }
     .cue-box.trial-mode { height: var(--cue-h); overflow: hidden; }
     .stage.playing .cue-box { display: none; }
+    .feedback { display: none !important; }
+
+    .content-toggle { display: flex; align-items: center; gap: 12px; }
+    .content-opt {
+      display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none;
+      color: var(--muted); font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .content-opt input { width: 14px; height: 14px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+    .content-opt:has(input:checked) { color: var(--text); }
+
+    .play-wrap > .status-row { grid-column: 1 / -1; }
+    @media (min-width: 701px) {
+      .play-wrap > .status-row { display: flex; flex-wrap: nowrap; gap: 10px; }
+      .play-wrap > .status-row .stat-chip {
+        flex: 1 1 0; min-width: 0;
+        display: flex; align-items: baseline; justify-content: center; gap: 10px;
+        border-radius: 14px; padding: 9px 12px; box-shadow: none;
+      }
+      .play-wrap > .status-row .stat-chip .label,
+      .play-wrap > .status-row .stat-chip .value { display: inline; margin: 0; }
+    }
+    .stimulus-grid.pair .stimulus > span { white-space: nowrap; }
+
+    .play-wrap {
+      width: min(1160px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      column-gap: 14px;
+      row-gap: 10px;
+      align-items: stretch;
+    }
+    .play-wrap > .footnote { grid-column: 1; }
+    .answer-feed {
+      display: flex; flex-direction: column; gap: 6px;
+      min-height: 0; overflow: hidden;
+      contain: size; /* take the box's height, never stretch it */
+      padding: 12px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border, rgba(255,255,255,.08));
+    }
+    .feed-head { color: var(--muted); font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; padding: 0 4px; }
+    .feed-list { display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden; flex: 1; justify-content: flex-start; }
+    .feed-empty { color: var(--muted); font-size: .78rem; opacity: .6; padding: 6px 4px; }
+    .feed-item {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px;
+      padding: 3px 9px; border-radius: 8px; min-height: 0;
+      background: rgba(0,0,0,.42);
+      border-left: 3px solid transparent;
+      font-size: .78rem; line-height: 1.1; white-space: nowrap;
+      animation: feed-in .18s ease-out;
+    }
+    @keyframes feed-in { from { transform: translateX(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .feed-pair {
+      font-family: "Libre Baskerville", Baskerville, Georgia, serif; font-weight: 700;
+      font-variant-numeric: lining-nums; color: var(--text); font-size: .78rem;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .feed-answer { font-weight: 800; letter-spacing: .05em; font-size: .7rem; text-align: right; }
+    .feed-icon { font-weight: 900; font-size: .85rem; width: 14px; text-align: center; }
+    .feed-item.ok { border-left-color: #3ddc84; }
+    .feed-item.ok .feed-answer, .feed-item.ok .feed-icon { color: #8af0b5; }
+    .feed-item.bad { border-left-color: #ff5a6a; }
+    .feed-item.bad .feed-answer, .feed-item.bad .feed-icon { color: #ff9aa4; }
+    .feed-item.slow { border-left-color: #f2c14e; }
+    .feed-item.slow .feed-answer, .feed-item.slow .feed-icon { color: #f6d68a; }
+    .feed-item.note { grid-template-columns: 1fr; background: rgba(255,255,255,.07); color: var(--text); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; justify-items: center; }
+    .feed-you { color: var(--muted); font-weight: 600; font-size: .62rem; letter-spacing: .02em; margin-left: 4px; }
+    .feed-list > .feed-item:nth-child(n+6) { opacity: .8; }
+    .feed-list > .feed-item:nth-child(n+8) { opacity: .6; }
+    .feed-list > .feed-item:nth-child(n+10) { opacity: .45; }
     .stimulus, .button-row .answer-btn.choice, .cue-rule {
       /* Libre Baskerville: its "1" has a clear flag and foot, so it can't be mistaken for Roman "I". */
       font-family: "Libre Baskerville", Baskerville, "Baskerville Old Face", Georgia, "Times New Roman", serif;
@@ -773,15 +846,15 @@
     }
 
     .results {
-      position: absolute;
-      inset: 0;
+      position: static;
       display: none;
       place-items: center;
-      background: rgba(12,12,14,.86);
-      backdrop-filter: blur(10px);
-      z-index: 20;
-      padding: 20px;
+      padding: 0;
     }
+    .stage:has(.results.open) .cue-box,
+    .stage:has(.results.open) .stimulus-area { display: none !important; }
+    .stage.results-open .cue-box,
+    .stage.results-open .stimulus-area { display: none !important; }
     .results.open { display: grid; }
     .results-close {
       position: absolute; top: 12px; right: 12px;
@@ -853,7 +926,6 @@
       .button-row.nback-enabled .answer-btn.nback { grid-column: 1 / -1; }
       .results-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
       .results-cell { padding: 8px 4px; font-size: .8rem; }
-      .results { align-items: start; padding-top: 175px; }
     }
 
     :root {
@@ -946,6 +1018,12 @@
 
     /* ===== Phone layout ===== */
     @media (max-width: 700px) {
+      .play-wrap { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+      .answer-feed.empty { display: none; }
+      .answer-feed { padding: 8px; border-radius: 14px; gap: 6px; contain: none; }
+      .feed-list { gap: 3px; }
+      .feed-item { padding: 2px 8px; font-size: .72rem; gap: 6px; }
+      .feed-answer { font-size: .62rem; }
       .app { grid-template-columns: minmax(0, 1fr); }
       .main { grid-template-columns: minmax(0, 1fr); }
       .stage { width: 100%; min-width: 0; }
@@ -957,7 +1035,7 @@
       }
       .brand { gap: 8px; }
       .gear-btn, .progress-btn { width: 36px; height: 36px; min-width: 36px; }
-      .title-wrap h1 { font-size: 1rem; white-space: nowrap; }
+      .title-wrap h1 { font-size: 1.2rem; white-space: nowrap; }
       .title-wrap p { display: none; }
       .status-row {
         display: grid;
@@ -988,16 +1066,20 @@
       .control-panel {
         opacity: .7;
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
+        grid-template-columns: auto minmax(0, 1fr);
+        column-gap: 12px;
+        row-gap: 8px;
+        align-items: center;
       }
+      .session-buttons { grid-column: 1 / -1; }
+      .content-toggle { gap: 10px; }
       .session-buttons { flex-wrap: nowrap; gap: 6px; justify-content: space-between; }
       .session-btn { height: 30px; padding: 0 12px; }
       .limit-toggle { margin-left: auto; }
       .limit-opt { height: 28px; padding: 0 8px; }
       .limit-input { width: 44px; height: 30px; }
       .limit-unit { display: none; }
-      .level-picker { width: 100%; flex-wrap: nowrap; gap: 6px; }
+      .level-picker { width: auto; min-width: 0; flex-wrap: nowrap; gap: 6px; }
       .level-buttons {
         flex: 1;
         display: grid;
@@ -1005,7 +1087,6 @@
         gap: 3px;
       }
       .level-slider { flex: 1; width: auto; height: 28px; }
-      .level-head { display: inline; }
       #levelReadout { min-width: 0; text-align: right; font-size: .66rem; }
 
       .stimulus-grid.pair .stimulus {
@@ -1020,7 +1101,7 @@
       }
       .footnote { display: none; }
       .cue-rule { font-size: 1.05rem; }
-      .results { align-items: start; padding: 112px 12px 12px; }
+      .results { padding: 0; }
       .results-card { padding: 18px 14px; }
       .results-accuracy { font-size: clamp(4rem, 24vw, 7rem); }
       .feedback { inset: auto 10px 10px 10px; text-align: center; font-size: .8rem; }
@@ -1043,10 +1124,13 @@
         <button class="gear-btn" id="openSettings" aria-label="Open settings">⚙</button>
          <div class="status-actions"><button class="progress-btn" id="openProgress" aria-label="Open progress" title="Progress">↗</button></div>
         <div class="title-wrap">
-          <h1>aPOSNER Trainer</h1>
-          <p>Is it the same meaning, the same system, or neither?</p>
+          <h1>POSNER</h1>
         </div>
       </div>
+    </div>
+
+    <div class="main">
+      <div class="play-wrap">
       <div class="status-row">
        
         <div class="stat-chip"><span class="label">Level</span><span class="value" id="levelDisplay">1</span></div>
@@ -1054,11 +1138,8 @@
         <div class="stat-chip"><span class="label">Today</span><span class="value" id="todayDisplay">00:00:00</span></div>
         <div class="stat-chip"><span class="label">Session</span><span class="value" id="timeDisplay">00:00</span></div>
       </div>
-    </div>
-
-    <div class="main">
       <div class="stage" id="stage">
-        <div class="status-banner">
+        <div class="status-banner hidden">
           <div id="modeInfo">Mode: Classic</div>
           <div id="nBackInfo" class="nback-status hidden" aria-live="polite">N-back: n=2</div>
           <div id="progressInfo">Trials: 0 • Mistakes: 0 • Streak: 0</div>
@@ -1073,12 +1154,15 @@
               <button type="button" class="limit-opt" id="limitQuestionsBtn" data-type="questions">QUESTIONS</button>
             </div>
             <input class="limit-input" id="limitValue" type="text" inputmode="decimal" value="3" aria-label="Session length" />
-            <span class="limit-unit" id="limitUnit">min</span>
+            <span class="limit-unit hidden" id="limitUnit">min</span>
+          </div>
+          <div class="content-toggle" role="group" aria-label="What to practise">
+            <label class="content-opt"><input type="checkbox" id="contentNumbers" checked /><span>Numbers</span></label>
+            <label class="content-opt"><input type="checkbox" id="contentElements" /><span>Elements</span></label>
           </div>
           <div class="level-picker" id="levelPicker" role="group" aria-label="Difficulty level">
-            <span class="level-head">Level</span>
-            <input class="level-slider" id="levelSlider" type="range" min="1" max="10" step="1" value="4" aria-label="Difficulty level" />
-            <span id="levelReadout">4 • 1.28s</span>
+            <input class="level-slider" id="levelSlider" type="range" min="1" max="10" step="1" value="4" aria-label="Difficulty level" title="Level" />
+            <span id="levelReadout" class="hidden">4 • 1.28s</span>
           </div>
         </div>
 
@@ -1093,14 +1177,13 @@
         <div class="stimulus-area">
           <div class="stimulus-grid hidden" id="stimulusGrid"></div>
           <div class="button-row" id="buttonRow">
-            <button class="answer-btn choice" id="meaningBtn" disabled>MEANING</button>
-            <button class="answer-btn choice" id="systemBtn" disabled>SYSTEM</button>
-            <button class="answer-btn choice" id="neitherBtn" disabled>NEITHER</button>
+            <button class="answer-btn choice" id="meaningBtn" title="Keys: 1, A or ←" disabled>MEANING</button>
+            <button class="answer-btn choice" id="systemBtn" title="Keys: 2, S or ↓" disabled>SYSTEM</button>
+            <button class="answer-btn choice" id="neitherBtn" title="Keys: 3, D or →" disabled>NEITHER</button>
             <button class="answer-btn nback hidden" id="nBackBtn" disabled>N-BACK MATCH</button>
           </div>
         </div>
 
-        <div class="footnote">Keyboard: 1 / A / ← = Meaning · 2 / S / ↓ = System · 3 / D / → = Neither</div>
         <div class="feedback" id="feedback"></div>
 
         <div class="results" id="resultsOverlay">
@@ -1109,16 +1192,19 @@
             <h3 id="resultsTitle">Session complete</h3>
             <div class="results-accuracy" id="finalAccuracy">0%</div>
             <div class="results-accuracy-label">Accuracy</div>
-            <p id="resultsSummary">Great work.</p>
+            <p id="resultsSummary" class="hidden"></p>
             <div class="results-grid">
               <div class="results-cell"><span>Questions</span><span class="big" id="finalTrials">0</span></div>
               <div class="results-cell"><span>Mistakes</span><span class="big" id="finalMistakes">0</span></div>
               <div class="results-cell"><span>Final level</span><span class="big" id="finalLevel">1</span></div>
             </div>
             <button class="results-copy" id="resultsCopyBtn" type="button">Copy results</button>
-            <p class="results-hint">Press START for a new session.</p>
           </div>
         </div>
+      </div>
+      <aside class="answer-feed empty" id="answerFeed" aria-label="Last 10 answers" aria-live="polite">
+        <div class="feed-list" id="feedList"></div>
+      </aside>
       </div>
     </div>
   </div>
@@ -1479,6 +1565,10 @@
     resultsTitle: document.getElementById('resultsTitle'),
     finalMistakes: document.getElementById('finalMistakes'),
     resultsCloseBtn: document.getElementById('resultsCloseBtn'),
+    feedList: document.getElementById('feedList'),
+    answerFeed: document.getElementById('answerFeed'),
+    contentNumbers: document.getElementById('contentNumbers'),
+    contentElements: document.getElementById('contentElements'),
     resultsCopyBtn: document.getElementById('resultsCopyBtn'),
     levelSlider: document.getElementById('levelSlider'),
     levelReadout: document.getElementById('levelReadout'),
@@ -2399,9 +2489,27 @@
     trial.stimuli.forEach((stimulus, index) => {
       const cell = document.createElement('div');
       cell.className = 'stimulus';
-      cell.textContent = stimulus;
+      const label = document.createElement('span');
+      label.textContent = stimulus;
+      cell.appendChild(label);
       if (trial.highlightIndices && trial.highlightIndices.includes(index)) cell.classList.add('selected');
       els.stimulusGrid.appendChild(cell);
+    });
+    fitStimuli();
+  }
+
+  // Shrink long stimuli (e.g. "Rutherfordium") so they stay on one line inside the tile.
+  function fitStimuli() {
+    els.stimulusGrid.querySelectorAll('.stimulus').forEach((cell) => {
+      const label = cell.firstElementChild;
+      if (!label) return;
+      cell.style.fontSize = '';
+      const cs = getComputedStyle(cell);
+      const avail = cell.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const width = label.offsetWidth;
+      if (avail > 0 && width > avail) {
+        cell.style.fontSize = `${Math.max(12, parseFloat(cs.fontSize) * (avail / width) * 0.97)}px`;
+      }
     });
   }
 
@@ -2750,24 +2858,61 @@
     return Array.from(String(str), (ch) => HOMOGLYPHS[ch] || ch).join('');
   }
 
-  let threeWayCache = null;
-  function getThreeWayCandidates(settings) {
-    const key = `${settings.writingSystemsCount}|${settings.minNumber}|${settings.maxNumber}`;
-    if (threeWayCache && threeWayCache.key === key) return threeWayCache;
-    const systems = getWritingSystemPool(settings.writingSystemsCount);
-    const all = [];
-    const looks = new Map();
-    const hi = Math.min(settings.maxNumber, settings.minNumber + 400);
-    systems.forEach((system) => {
-      for (let v = settings.minNumber; v <= hi; v += 1) {
-        const text = formatNumberBySystem(v, system);
-        const vk = visualKey(text);
-        all.push({ system, value: v, text, vk });
-        looks.set(vk, (looks.get(vk) || 0) + 1);
+  // Periodic table: [symbol, name], index + 1 = atomic number.
+  const ELEMENTS = [
+    ['H', 'Hydrogen'], ['He', 'Helium'], ['Li', 'Lithium'], ['Be', 'Beryllium'], ['B', 'Boron'], ['C', 'Carbon'],
+    ['N', 'Nitrogen'], ['O', 'Oxygen'], ['F', 'Fluorine'], ['Ne', 'Neon'], ['Na', 'Sodium'], ['Mg', 'Magnesium'],
+    ['Al', 'Aluminum'], ['Si', 'Silicon'], ['P', 'Phosphorus'], ['S', 'Sulfur'], ['Cl', 'Chlorine'], ['Ar', 'Argon'],
+    ['K', 'Potassium'], ['Ca', 'Calcium'], ['Sc', 'Scandium'], ['Ti', 'Titanium'], ['V', 'Vanadium'], ['Cr', 'Chromium'],
+    ['Mn', 'Manganese'], ['Fe', 'Iron'], ['Co', 'Cobalt'], ['Ni', 'Nickel'], ['Cu', 'Copper'], ['Zn', 'Zinc'],
+    ['Ga', 'Gallium'], ['Ge', 'Germanium'], ['As', 'Arsenic'], ['Se', 'Selenium'], ['Br', 'Bromine'], ['Kr', 'Krypton'],
+    ['Rb', 'Rubidium'], ['Sr', 'Strontium'], ['Y', 'Yttrium'], ['Zr', 'Zirconium'], ['Nb', 'Niobium'], ['Mo', 'Molybdenum'],
+    ['Tc', 'Technetium'], ['Ru', 'Ruthenium'], ['Rh', 'Rhodium'], ['Pd', 'Palladium'], ['Ag', 'Silver'], ['Cd', 'Cadmium'],
+    ['In', 'Indium'], ['Sn', 'Tin'], ['Sb', 'Antimony'], ['Te', 'Tellurium'], ['I', 'Iodine'], ['Xe', 'Xenon'],
+    ['Cs', 'Cesium'], ['Ba', 'Barium'], ['La', 'Lanthanum'], ['Ce', 'Cerium'], ['Pr', 'Praseodymium'], ['Nd', 'Neodymium'],
+    ['Pm', 'Promethium'], ['Sm', 'Samarium'], ['Eu', 'Europium'], ['Gd', 'Gadolinium'], ['Tb', 'Terbium'], ['Dy', 'Dysprosium'],
+    ['Ho', 'Holmium'], ['Er', 'Erbium'], ['Tm', 'Thulium'], ['Yb', 'Ytterbium'], ['Lu', 'Lutetium'], ['Hf', 'Hafnium'],
+    ['Ta', 'Tantalum'], ['W', 'Tungsten'], ['Re', 'Rhenium'], ['Os', 'Osmium'], ['Ir', 'Iridium'], ['Pt', 'Platinum'],
+    ['Au', 'Gold'], ['Hg', 'Mercury'], ['Tl', 'Thallium'], ['Pb', 'Lead'], ['Bi', 'Bismuth'], ['Po', 'Polonium'],
+    ['At', 'Astatine'], ['Rn', 'Radon'], ['Fr', 'Francium'], ['Ra', 'Radium'], ['Ac', 'Actinium'], ['Th', 'Thorium'],
+    ['Pa', 'Protactinium'], ['U', 'Uranium'], ['Np', 'Neptunium'], ['Pu', 'Plutonium'], ['Am', 'Americium'], ['Cm', 'Curium'],
+    ['Bk', 'Berkelium'], ['Cf', 'Californium'], ['Es', 'Einsteinium'], ['Fm', 'Fermium'], ['Md', 'Mendelevium'], ['No', 'Nobelium'],
+    ['Lr', 'Lawrencium'], ['Rf', 'Rutherfordium'], ['Db', 'Dubnium'], ['Sg', 'Seaborgium'], ['Bh', 'Bohrium'], ['Hs', 'Hassium'],
+    ['Mt', 'Meitnerium'], ['Ds', 'Darmstadtium'], ['Rg', 'Roentgenium'], ['Cn', 'Copernicium'], ['Nh', 'Nihonium'], ['Fl', 'Flerovium'],
+    ['Mc', 'Moscovium'], ['Lv', 'Livermorium'], ['Ts', 'Tennessine'], ['Og', 'Oganesson'],
+  ];
+
+  // Which content the player practises (the two checkboxes).
+  const CONTENT_KEY = 'posner-content-v1';
+  const content = (() => {
+    const base = { numbers: true, elements: false };
+    try {
+      const saved = JSON.parse(localStorage.getItem(CONTENT_KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        base.numbers = saved.numbers !== false;
+        base.elements = Boolean(saved.elements);
       }
-    });
-    // Drop anything that looks identical to a different symbol (e.g. Roman "I" vs Latin letter "I").
-    const clean = all.filter((c) => looks.get(c.vk) === 1);
+    } catch (_) {}
+    if (!base.numbers && !base.elements) base.numbers = true;
+    return base;
+  })();
+
+  function renderContentToggle() {
+    els.contentNumbers.checked = content.numbers;
+    els.contentElements.checked = content.elements;
+  }
+
+  function setContent(which, on) {
+    content[which] = Boolean(on);
+    // At least one box stays ticked: unticking the last one switches to the other.
+    if (!content.numbers && !content.elements) content[which === 'numbers' ? 'elements' : 'numbers'] = true;
+    try { localStorage.setItem(CONTENT_KEY, JSON.stringify(content)); } catch (_) {}
+    threeWayCache = null;
+    renderContentToggle();
+    updateHud();
+  }
+
+  function groupCandidates(clean) {
     const bySystem = new Map();
     const byValue = new Map();
     clean.forEach((c) => {
@@ -2776,12 +2921,62 @@
       if (!byValue.has(c.value)) byValue.set(c.value, []);
       byValue.get(c.value).push(c);
     });
-    threeWayCache = {
-      key,
+    return {
       clean,
       systemGroups: [...bySystem.values()].filter((g) => g.length >= 2),
       valueGroups: [...byValue.values()].filter((g) => new Set(g.map((c) => c.system.id)).size >= 2),
     };
+  }
+
+  let threeWayCache = null;
+  function getThreeWayCandidates(settings) {
+    const key = `${settings.writingSystemsCount}|${settings.minNumber}|${settings.maxNumber}|${content.numbers}|${content.elements}`;
+    if (threeWayCache && threeWayCache.key === key) return threeWayCache;
+    const domains = {};
+    const numberLooks = new Set();
+
+    if (content.numbers) {
+      const systems = getWritingSystemPool(settings.writingSystemsCount);
+      const all = [];
+      const looks = new Map();
+      const hi = Math.min(settings.maxNumber, settings.minNumber + 400);
+      systems.forEach((system) => {
+        for (let v = settings.minNumber; v <= hi; v += 1) {
+          const text = formatNumberBySystem(v, system);
+          const vk = visualKey(text);
+          all.push({ system, value: v, text, vk });
+          looks.set(vk, (looks.get(vk) || 0) + 1);
+        }
+      });
+      // Drop anything that looks identical to a different symbol (e.g. Roman "I" vs Latin letter "I").
+      let clean = all.filter((c) => looks.get(c.vk) === 1);
+      // Every way a number can look on screen (used below so an element symbol never looks like a number).
+      all.forEach((c) => numberLooks.add(c.vk));
+      if (content.elements) {
+        // Numbers that look like an element symbol (Roman "V", Latin letter "F", ...).
+        // If they all come from one writing system, any pair of them is SYSTEM under either reading, so they stay.
+        // If they span several systems, a pair such as "V / F" could be read two ways, so they are left out.
+        const symbolLooks = new Set(ELEMENTS.map(([symbol]) => visualKey(symbol)));
+        const dualSystems = new Set(clean.filter((c) => symbolLooks.has(c.vk)).map((c) => c.system.id));
+        if (dualSystems.size > 1) clean = clean.filter((c) => !symbolLooks.has(c.vk));
+      }
+      domains.numbers = groupCandidates(clean);
+    }
+
+    if (content.elements) {
+      const symbolSystem = { id: 'element-symbol' };
+      const nameSystem = { id: 'element-name' };
+      const cands = [];
+      ELEMENTS.forEach(([symbol, name], index) => {
+        const value = `element-${index + 1}`;
+        // With numbers also on, skip symbols that could be read as a number (e.g. "V" = Roman 5).
+        if (!numberLooks.has(visualKey(symbol))) cands.push({ system: symbolSystem, value, text: symbol, vk: visualKey(symbol) });
+        cands.push({ system: nameSystem, value, text: name, vk: name });
+      });
+      domains.elements = groupCandidates(cands);
+    }
+
+    threeWayCache = { key, domains };
     return threeWayCache;
   }
 
@@ -2815,21 +3010,28 @@
   const THREE_WAY_LABELS = { meaning: 'MEANING', system: 'SYSTEM', neither: 'NEITHER' };
 
   function buildThreeWayTrial(settings) {
-    const pools = getThreeWayCandidates(settings);
+    const { domains } = getThreeWayCandidates(settings);
+    // Each round is either a numbers round or an elements round (picked at random when both are ticked).
+    const names = Object.keys(domains);
+    const firstDomain = randomItem(names);
+    const domainOrder = [firstDomain, ...names.filter((d) => d !== firstDomain)];
     const first = randomItem(['meaning', 'system', 'neither']);
     const order = [first, ...['meaning', 'system', 'neither'].filter((a) => a !== first)];
-    for (const answer of order) {
-      const pair = buildThreeWayPair(answer, pools);
-      if (pair) {
-        return {
-          type: 'pair',
-          rule: { id: answer, word: THREE_WAY_LABELS[answer], label: THREE_WAY_LABELS[answer] },
-          expected: answer,
-          stimuli: pair.map((c) => c.text),
-          gridCols: 2,
-          highlightIndices: [],
-          mainAnswered: false,
-        };
+    for (const domain of domainOrder) {
+      for (const answer of order) {
+        const pair = buildThreeWayPair(answer, domains[domain]);
+        if (pair) {
+          return {
+            type: 'pair',
+            domain,
+            rule: { id: answer, word: THREE_WAY_LABELS[answer], label: THREE_WAY_LABELS[answer] },
+            expected: answer,
+            stimuli: pair.map((c) => c.text),
+            gridCols: 2,
+            highlightIndices: [],
+            mainAnswered: false,
+          };
+        }
       }
     }
     return {
@@ -2861,7 +3063,10 @@
   }
 
   function getTrialModeLabel(settings) {
-    return `Meaning / System / Neither (${settings.writingSystemsCount} systems, ${settings.minNumber}–${settings.maxNumber})`;
+    const parts = [];
+    if (content.numbers) parts.push(`Numbers (${settings.writingSystemsCount} systems, ${settings.minNumber}–${settings.maxNumber})`);
+    if (content.elements) parts.push('Elements (symbol / name)');
+    return parts.join(' + ');
     if (settings.stimuliCount > 2) {
       if (settings.mode === 'classic') return settings.rmtMode ? `Classic + RMT grid ×${settings.stimuliCount}` : `Classic grid ×${settings.stimuliCount}`;
       if (settings.mode === 'multi') return `Multi grid ×${settings.stimuliCount}`;
@@ -2878,7 +3083,7 @@
     const accuracy = total ? Math.round((state.correctCount / total) * 100) : 0;
     applyTheme(settings.theme);
     if (!state.running) state.level = clampLevel(settings.startingLevel);
-    els.levelDisplay.textContent = state.level;
+    els.levelDisplay.textContent = `${state.level} · ${(levelToWindow(state.level) / 1000).toFixed(2)}s`;
     renderLevelPicker();
     els.mainStartBtn.disabled = state.running;
     els.mainStopBtn.disabled = !state.running;
@@ -2990,16 +3195,17 @@
     const settings = readSettings();
     if (!settings.keepLevelFixed) {
       if (state.consecutiveMistakes >= 3) {
+        const before = state.level;
         state.level = Math.max(MIN_LEVEL, state.level - 1);
         state.consecutiveMistakes = 0;
         state.lastPromotionAt = state.trialCount;
-        els.feedback.textContent += ` • Level down → ${state.level}`;
+        if (state.level !== before) pushFeedNote(`Level down → ${state.level}`);
       } else if (state.trialResults.length >= 32) {
         const mistakes = state.trialResults.filter((v) => !v).length;
         if (mistakes < 4 && state.trialCount - state.lastPromotionAt >= 32 && state.level < MAX_LEVEL) {
           state.level += 1;
           state.lastPromotionAt = state.trialCount;
-          els.feedback.textContent += ` • Level up → ${state.level}`;
+          pushFeedNote(`Level up → ${state.level}`);
         }
       }
     } else {
@@ -3013,6 +3219,45 @@
       els.nBackInfo.textContent = `N-back: n=${nChange.n}`;
       setFeedback('good', `N-back changed to n=${nChange.n} (${nChange.accuracy}% recent accuracy)`);
     }
+  }
+
+  const FEED_MAX = 10;
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function addFeedItem(el) {
+    els.answerFeed.classList.remove('empty');
+    els.feedList.prepend(el);
+    // Shrink a long pair (two long element names) so it shows in full.
+    const pair = el.querySelector('.feed-pair');
+    if (pair && pair.scrollWidth > pair.clientWidth && pair.clientWidth > 0) {
+      const size = parseFloat(getComputedStyle(pair).fontSize);
+      pair.style.fontSize = `${Math.max(8.5, size * (pair.clientWidth / pair.scrollWidth) * 0.97)}px`;
+    }
+    while (els.feedList.children.length > FEED_MAX) els.feedList.lastElementChild.remove();
+  }
+  function pushFeedAnswer(trial, outcome) {
+    if (!trial) return;
+    const answer = THREE_WAY_LABELS[trial.expected] || '';
+    const kind = outcome.mainCorrect ? 'ok' : (outcome.mainChoice ? 'bad' : 'slow');
+    const icon = kind === 'ok' ? '✓' : kind === 'bad' ? '✗' : '⏱';
+    const el = document.createElement('div');
+    el.className = `feed-item ${kind}`;
+    const pairText = (trial.stimuli || []).join('  ·  ');
+    el.innerHTML = `<span class="feed-pair">${escapeHtml(pairText)}</span>`
+      + `<span class="feed-answer">${escapeHtml(answer)}</span>`
+      + `<span class="feed-icon">${icon}</span>`;
+    addFeedItem(el);
+  }
+  function pushFeedNote(text) {
+    const el = document.createElement('div');
+    el.className = 'feed-item note';
+    el.textContent = text;
+    addFeedItem(el);
+  }
+  function clearFeed() {
+    els.feedList.innerHTML = '';
+    els.answerFeed.classList.add('empty');
   }
 
   function finishTrial(outcome) {
@@ -3032,6 +3277,7 @@
       }
     }
 
+    pushFeedAnswer(state.currentTrial, outcome);
     recordTrial(outcome.correct, feedbackText);
     if (sessionLimit.type === 'questions' && state.trialCount >= sessionLimit.questions) {
       endSession();
@@ -3213,6 +3459,7 @@
     state.sessionStartAt = Date.now();
     state.progressRecorded = false;
     els.resultsOverlay.classList.remove('open');
+    clearFeed();
     closeSettings();
     lockButtons(true);
     setFeedback('', '');
@@ -3308,7 +3555,7 @@
     if (settings.nBackMode) extras.push(`N-back (n=${settings.nBackSteps}${settings.variableNBack ? ', variable' : ''})`);
     if (settings.keepLevelFixed) extras.push('Fixed level');
     const lines = [
-      `APOSNER Trainer — ${date}${manual ? ' (stopped early)' : ''}`,
+      `POSNER — ${date}${manual ? ' (stopped early)' : ''}`,
       `Accuracy: ${accuracy}% (${state.correctCount}/${total} correct)`,
       `Questions: ${total} | Mistakes: ${state.wrongCount}`,
       startLevel === endLevel
@@ -3405,7 +3652,7 @@
 
   function handleKeydown(e) {
     if (!state.running || state.phase !== 'response' || state.responseLocked) return;
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+    if (e.target && (e.target.tagName === 'SELECT' || (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox'))) return;
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     const map = {
       '1': 'meaning', a: 'meaning', ArrowLeft: 'meaning',
@@ -3436,6 +3683,10 @@
   els.mainStopBtn.addEventListener('click', stopSession);
   els.levelSlider.addEventListener('input', () => setLevel(Number(els.levelSlider.value)));
   els.levelSlider.addEventListener('change', () => els.levelSlider.blur());
+  els.contentNumbers.addEventListener('change', () => { setContent('numbers', els.contentNumbers.checked); els.contentNumbers.blur(); });
+  els.contentElements.addEventListener('change', () => { setContent('elements', els.contentElements.checked); els.contentElements.blur(); });
+  window.addEventListener('resize', fitStimuli);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitStimuli);
   els.resultsCloseBtn.addEventListener('click', () => els.resultsOverlay.classList.remove('open'));
   els.resultsCopyBtn.addEventListener('click', copyResults);
   document.addEventListener('keydown', (e) => {
@@ -3487,6 +3738,7 @@
 
   const restoredSettings = loadSavedSettings();
   if (!restoredSettings) resetDefaults();
+  renderContentToggle();
   updateHud();
   getTodayDisplay();
   updateCue('', 'Waiting for session to begin', '');

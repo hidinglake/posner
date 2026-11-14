@@ -4,15 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>aPOSNER Training Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f1220;
-      --panel: #171b2e;
-      --panel-2: #1f2440;
-      --text: #edf1ff;
-      --muted: #aab3d3;
-      --accent: #7c8cff;
-      --accent-2: #37d2a2;
+      --bg: #0e0f11;
+      --panel: #17181b;
+      --panel-2: #1f2024;
+      --text: #f1f1f3;
+      --muted: #a7a9b0;
+      --accent: #c8cad0;
+      --accent-2: #e4e5e9;
       --danger: #ff6b6b;
       --warn: #ffcc66;
       --shadow: 0 20px 60px rgba(0,0,0,.35);
@@ -25,7 +28,7 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(124,140,255,.16), transparent 45%),
+        radial-gradient(1200px 700px at 10% 10%, rgba(205,208,215,.08), transparent 45%),
         radial-gradient(900px 500px at 90% 15%, rgba(55,210,162,.12), transparent 40%),
         linear-gradient(180deg, #0b0e18 0%, #101429 100%);
       color: var(--text);
@@ -36,7 +39,7 @@
     body[data-theme="dark"] {
       background:
         radial-gradient(1200px 700px at 10% 10%, rgba(255,255,255,.05), transparent 45%),
-        radial-gradient(900px 500px at 90% 15%, rgba(124,140,255,.12), transparent 40%),
+        radial-gradient(900px 500px at 90% 15%, rgba(205,208,215,.06), transparent 40%),
         linear-gradient(180deg, #05070d 0%, #0a0f18 100%);
     }
 
@@ -272,6 +275,7 @@
       .level-picker { flex-wrap: wrap; min-width: 0; }
       .level-btn { width: 20px; }
       .session-buttons { flex-wrap: wrap; row-gap: 6px; }
+      .button-row .answer-btn.choice { font-size: .9rem; letter-spacing: .02em; padding: 14px 4px; }
       .limit-toggle { margin-left: 0; }
       #levelReadout { min-width: 0; }
     }
@@ -289,7 +293,30 @@
       cursor: pointer;
     }
     .level-btn:hover { background: rgba(255,255,255,.12); color: var(--text); }
-    .level-btn.active { background: var(--accent, #7c8cff); color: #fff; border-color: transparent; }
+    .level-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 170px; height: 18px; margin: 0; padding: 0;
+      background: transparent; cursor: pointer;
+      --fill: 33%;
+    }
+    .level-slider:focus { outline: none; }
+    .level-slider::-webkit-slider-runnable-track {
+      height: 3px; border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent) 0 var(--fill), rgba(255,255,255,.14) var(--fill) 100%);
+    }
+    .level-slider::-moz-range-track { height: 3px; border-radius: 3px; background: rgba(255,255,255,.14); }
+    .level-slider::-moz-range-progress { height: 3px; border-radius: 3px; background: var(--accent); }
+    .level-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%; margin-top: -5.5px;
+      background: linear-gradient(180deg, #f4f4f6, #b9bbc1); border: 1px solid rgba(0,0,0,.35);
+      box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+    .level-slider::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(180deg, #f4f4f6, #b9bbc1); border: 1px solid rgba(0,0,0,.35);
+    }
+    .level-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(220,222,228,.35); }
     .session-buttons { display: flex; gap: 6px; }
     .session-btn {
       border: 0; border-radius: 8px; height: 26px; padding: 0 14px;
@@ -330,7 +357,7 @@
       place-items: center;
       text-align: center;
       border-radius: 22px;
-      background: linear-gradient(180deg, rgba(124,140,255,.12), rgba(55,210,162,.08));
+      background: linear-gradient(180deg, rgba(205,208,215,.07), rgba(205,208,215,.03));
       border: 1px solid rgba(255,255,255,.08);
       min-height: 104px;
       padding: 14px 16px;
@@ -365,6 +392,20 @@
     .cue-box.trial-mode .cue-label { margin-bottom: 6px; }
     .cue-box { min-height: var(--cue-h); }
     .cue-box.trial-mode { height: var(--cue-h); overflow: hidden; }
+    .stage.playing .cue-box { display: none; }
+    .stimulus, .button-row .answer-btn.choice, .cue-rule {
+      /* Libre Baskerville: its "1" has a clear flag and foot, so it can't be mistaken for Roman "I". */
+      font-family: "Libre Baskerville", Baskerville, "Baskerville Old Face", Georgia, "Times New Roman", serif;
+      font-weight: 700;
+      font-variant-numeric: lining-nums;
+    }
+    .stimulus { font-weight: 700; letter-spacing: .01em; }
+    .stimulus-grid.pair .stimulus { font-size: clamp(2.4rem, min(7vw, 8.5vh), 5.4rem); }
+    .button-row .answer-btn.choice { font-weight: 700; font-size: 1.15rem; letter-spacing: .1em; }
+    .cue-rule { font-weight: 700; letter-spacing: .02em; font-size: clamp(1.15rem, 2vw, 1.6rem); }
+    .stage:not(.playing) .stimulus-grid { display: none !important; }
+    .stage:not(.playing) .cue-box { height: var(--cue-h); min-height: var(--cue-h); box-sizing: border-box; }
+    .results-card h3 { padding: 0 36px; }
     .cue-center { min-width: 0; width: 100%; }
     .cue-distractor { display: none; }
     .cue-box.trial-mode {
@@ -495,6 +536,18 @@
     .button-row .answer-btn { min-height: 72px; box-shadow: none; }
     .button-row .answer-btn:hover, .button-row .answer-btn:active { transform: none; }
     .button-row.nback-enabled .answer-btn.nback { margin-top: 8px; border-radius: 18px; }
+    .button-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .button-row .answer-btn.choice {
+      background: #ffffff;
+      color: #12172a;
+      font-size: 1.15rem;
+      border-radius: 0;
+    }
+    .button-row .answer-btn.choice:first-child { border-radius: 18px 0 0 18px; }
+    .button-row .answer-btn.choice:nth-child(3) { border-radius: 0 18px 18px 0; }
+    .button-row .answer-btn.choice + .answer-btn.choice { border-left: 1px solid rgba(18,23,42,.18); }
+    .button-row .answer-btn.choice:hover:not(:disabled) { filter: brightness(.94); }
+    .button-row .answer-btn.choice:disabled { opacity: .55; }
     .button-row .answer-btn.same,
     .button-row .answer-btn.diff {
       background: #ffffff;
@@ -593,7 +646,7 @@
       left: 0;
       width: min(430px, 92vw);
       height: 100%;
-      background: linear-gradient(180deg, rgba(23,27,46,.98), rgba(15,18,32,.98));
+      background: linear-gradient(180deg, rgba(26,27,31,.98), rgba(17,18,21,.98));
       border-right: 1px solid rgba(255,255,255,.08);
       box-shadow: 18px 0 60px rgba(0,0,0,.35);
       transform: translateX(-102%);
@@ -603,6 +656,12 @@
       grid-template-rows: auto 1fr auto;
     }
     .settings-panel.open { transform: translateX(0); }
+    /* Closed side panels: no shadow bleeding onto the screen edges, not focusable. */
+    .settings-panel:not(.open), .progress-panel:not(.open) {
+      box-shadow: none;
+      visibility: hidden;
+      transition: transform .26s ease, visibility 0s linear .26s;
+    }
 
     .settings-head {
       padding: 18px 18px 12px;
@@ -654,7 +713,7 @@
       width: 100%;
       border: 1px solid rgba(255,255,255,.10);
       border-radius: 12px;
-      background: rgba(9,12,22,.9);
+      background: rgba(12,12,14,.9);
       color: var(--text);
       padding: 10px 12px;
       outline: none;
@@ -705,8 +764,8 @@
       cursor: pointer;
     }
     .primary-btn {
-      background: linear-gradient(135deg, var(--accent), #5c6bff);
-      color: white;
+      background: linear-gradient(180deg, #e6e7ea, #a9abb2);
+      color: #15161a;
     }
     .secondary-btn {
       background: rgba(255,255,255,.08);
@@ -718,7 +777,7 @@
       inset: 0;
       display: none;
       place-items: center;
-      background: rgba(10,13,24,.86);
+      background: rgba(12,12,14,.86);
       backdrop-filter: blur(10px);
       z-index: 20;
       padding: 20px;
@@ -740,7 +799,7 @@
     .results-card {
       position: relative;
       width: min(560px, 100%);
-      background: rgba(24,29,48,.96);
+      background: rgba(26,27,31,.96);
       border: 1px solid rgba(255,255,255,.08);
       border-radius: 24px;
       padding: 22px;
@@ -798,17 +857,17 @@
     }
 
     :root {
-      --surface: rgba(20, 25, 42, .94);
-      --surface-2: rgba(28, 34, 56, .92);
-      --surface-3: rgba(36, 43, 70, .96);
-      --border: rgba(164, 176, 255, .18);
+      --surface: rgba(22, 23, 26, .94);
+      --surface-2: rgba(30, 31, 35, .92);
+      --surface-3: rgba(38, 39, 44, .96);
+      --border: rgba(205, 208, 215, .16);
       --chip-bg: rgba(255, 255, 255, .06);
       --cue-bg: rgba(124, 140, 255, .10);
       --grid-bg: rgba(255, 255, 255, .05);
-      --input-bg: rgba(10, 13, 24, .92);
+      --input-bg: rgba(12, 12, 14, .92);
       --button-neutral: rgba(255, 255, 255, .08);
-      --button-same-start: #8da2ff;
-      --button-same-end: #6475ff;
+      --button-same-start: #e6e7ea;
+      --button-same-end: #b6b8bf;
       --button-diff-start: #5de0c8;
       --button-diff-end: #1fb8a1;
     }
@@ -884,6 +943,97 @@
       background: rgba(0,0,0,.45);
     }
 
+
+    /* ===== Phone layout ===== */
+    @media (max-width: 700px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .main { grid-template-columns: minmax(0, 1fr); }
+      .stage { width: 100%; min-width: 0; }
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 10px 10px 4px;
+      }
+      .brand { gap: 8px; }
+      .gear-btn, .progress-btn { width: 36px; height: 36px; min-width: 36px; }
+      .title-wrap h1 { font-size: 1rem; white-space: nowrap; }
+      .title-wrap p { display: none; }
+      .status-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        justify-content: stretch;
+      }
+      .stat-chip {
+        min-width: 0;
+        padding: 5px 4px;
+        border-radius: 12px;
+        box-shadow: none;
+      }
+      .stat-chip .label { font-size: .56rem; letter-spacing: .06em; }
+      .stat-chip .value { font-size: .82rem; }
+
+      .main { padding: 6px 10px 16px; }
+      .stage {
+        padding: 12px;
+        gap: 10px;
+        border-radius: 20px;
+        margin-bottom: 0;
+        --cue-h: clamp(120px, 27vh, 250px);
+      }
+      .status-banner { font-size: .72rem; min-height: 0; justify-content: center; }
+      #modeInfo { display: none; }
+
+      .control-panel {
+        opacity: .7;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .session-buttons { flex-wrap: nowrap; gap: 6px; justify-content: space-between; }
+      .session-btn { height: 30px; padding: 0 12px; }
+      .limit-toggle { margin-left: auto; }
+      .limit-opt { height: 28px; padding: 0 8px; }
+      .limit-input { width: 44px; height: 30px; }
+      .limit-unit { display: none; }
+      .level-picker { width: 100%; flex-wrap: nowrap; gap: 6px; }
+      .level-buttons {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(11, minmax(0, 1fr));
+        gap: 3px;
+      }
+      .level-slider { flex: 1; width: auto; height: 28px; }
+      .level-head { display: inline; }
+      #levelReadout { min-width: 0; text-align: right; font-size: .66rem; }
+
+      .stimulus-grid.pair .stimulus {
+        font-size: clamp(2.4rem, 13vw, 4.4rem);
+        border-radius: 18px;
+      }
+      .button-row .answer-btn.choice {
+        min-height: clamp(84px, 13vh, 120px);
+        font-size: .9rem;
+        letter-spacing: .02em;
+        padding: 10px 2px;
+      }
+      .footnote { display: none; }
+      .cue-rule { font-size: 1.05rem; }
+      .results { align-items: start; padding: 112px 12px 12px; }
+      .results-card { padding: 18px 14px; }
+      .results-accuracy { font-size: clamp(4rem, 24vw, 7rem); }
+      .feedback { inset: auto 10px 10px 10px; text-align: center; font-size: .8rem; }
+    }
+    @media (max-width: 350px) {
+      .session-btn { padding: 0 8px; font-size: .66rem; }
+      .limit-opt { padding: 0 6px; font-size: .6rem; }
+      .limit-input { width: 36px; }
+      #levelReadout { display: none; }
+      .level-buttons { gap: 2px; }
+      .level-btn { font-size: .62rem; }
+      .button-row .answer-btn.choice { font-size: .78rem; letter-spacing: 0; }
+    }
   </style>
 </head>
 <body>
@@ -894,7 +1044,7 @@
          <div class="status-actions"><button class="progress-btn" id="openProgress" aria-label="Open progress" title="Progress">↗</button></div>
         <div class="title-wrap">
           <h1>aPOSNER Trainer</h1>
-          <p>Speed sorting for same / different rules</p>
+          <p>Is it the same meaning, the same system, or neither?</p>
         </div>
       </div>
       <div class="status-row">
@@ -927,31 +1077,30 @@
           </div>
           <div class="level-picker" id="levelPicker" role="group" aria-label="Difficulty level">
             <span class="level-head">Level</span>
-            <div class="level-buttons" id="levelButtons"></div>
+            <input class="level-slider" id="levelSlider" type="range" min="1" max="10" step="1" value="4" aria-label="Difficulty level" />
             <span id="levelReadout">4 • 1.28s</span>
           </div>
         </div>
 
         <div class="cue-box" id="cueBox">
-          <div class="cue-distractor" id="distractorLeft" aria-hidden="true"></div>
           <div class="cue-center">
             <div class="cue-label hidden" id="cueLabel"></div>
             <div class="cue-rule" id="cueRule">Waiting for session to begin</div>
             <div class="cue-help hidden" id="cueHelp"></div>
           </div>
-          <div class="cue-distractor" id="distractorRight" aria-hidden="true"></div>
         </div>
 
         <div class="stimulus-area">
           <div class="stimulus-grid hidden" id="stimulusGrid"></div>
           <div class="button-row" id="buttonRow">
-            <button class="answer-btn same" id="sameBtn" disabled>SAME</button>
-            <button class="answer-btn diff" id="differentBtn" disabled>DIFFERENT</button>
+            <button class="answer-btn choice" id="meaningBtn" disabled>MEANING</button>
+            <button class="answer-btn choice" id="systemBtn" disabled>SYSTEM</button>
+            <button class="answer-btn choice" id="neitherBtn" disabled>NEITHER</button>
             <button class="answer-btn nback hidden" id="nBackBtn" disabled>N-BACK MATCH</button>
           </div>
         </div>
 
-        <div class="footnote">Keyboard shortcuts: S / Left Arrow = Same, D / Right Arrow = Different, N = N-back Match</div>
+        <div class="footnote">Keyboard: 1 / A / ← = Meaning · 2 / S / ↓ = System · 3 / D / → = Neither</div>
         <div class="feedback" id="feedback"></div>
 
         <div class="results" id="resultsOverlay">
@@ -1011,7 +1160,7 @@
             <a href="https://discord.gg/brain">Mindbuilding Discord</a>
         </div>
     <div class="settings-body">
-      <div class="setting">
+      <div class="setting hidden">
         <label for="modeSelect">Mode</label>
         <select id="modeSelect">
           <option value="classic">Classic</option>
@@ -1024,14 +1173,14 @@
       <div class="setting">
         <label for="themeSelect">Theme</label>
         <select id="themeSelect">
-          <option value="default">Default (current)</option>
+          <option value="default">Silver (default)</option>
           <option value="dark">Dark</option>
           <option value="cyan">Cyan</option>
         </select>
         <div class="setting-help">Changes the overall palette and background.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label for="stimuliCount">Number of stimuli</label>
         <select id="stimuliCount">
           <option value="2">2</option>
@@ -1059,12 +1208,12 @@
         <div class="setting-help">Systems are cumulative: select 7 to include Morse. Morse represents each number as its A–Z letter code in dots and dashes.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="rmtMode" type="checkbox" /> Enable relational monitoring training (RMT) in Classic mode</label>
         <div class="setting-help">Adds row, column, diagonal, and corner judgments when Classic mode uses a grid.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="rmtHighlightSelected" type="checkbox" checked /> Highlight the specific RMT subset</label>
         <div class="setting-help">Turn this off to show only the subset type (row, column, diagonal, or corners) and make the participant check them all.</div>
       </div>
@@ -1089,28 +1238,28 @@
       <!-- Session length is set with the TIME / QUESTIONS control beside STOP; kept here as hidden storage. -->
       <input id="sessionSeconds" type="hidden" value="180" />
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="negationMode" type="checkbox" /> Enable negation mode</label>
         <div class="setting-help">When enabled, about half of trials display the rule in red. On those trials, press the opposite answer from the normal response (SAME becomes DIFFERENT and vice versa).</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="nBackMode" type="checkbox" /> Enable n-back rule monitoring</label>
         <div class="setting-help">Adds a second judgment: press N-BACK MATCH when the current rule is the same rule used n trials ago. The SAME/DIFFERENT judgment is still required on every trial.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label for="nBackSteps">N-back distance (n)</label>
         <input id="nBackSteps" type="text" inputmode="numeric" value="2" />
         <div class="setting-help">Fixed mode uses this n. Values from 1–9 are allowed. On the first n trials there is no earlier comparison, so the N-BACK MATCH button should not be pressed.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="variableNBack" type="checkbox" /> Enable variable n-back</label>
         <div class="setting-help">Starts at the selected n. Every 8 completed trials, recent overall accuracy influences a random change of n by one step, favoring harder n at high accuracy and easier n at low accuracy. The live n is displayed above the task.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label for="cueDurationMs">Rule cue time (ms)</label>
         <input id="cueDurationMs" type="text" inputmode="numeric" value="500" />
         <div class="setting-help">Set this to 0 to skip the cue frame entirely and go straight to the stimuli.</div>
@@ -1121,7 +1270,7 @@
         <div class="setting-help">Turn this off to hide accuracy plus the trials/mistakes/streak line until the session ends.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label class="check-row"><input id="showRuleDuringStimulus" type="checkbox" checked /> Show the rule text while the stimuli are visible</label>
         <div class="setting-help">Turn this off to keep the stimuli on screen without repeating the rule text during the response window.</div>
       </div>
@@ -1322,7 +1471,7 @@
     cueLabel: document.getElementById('cueLabel'),
     cueRule: document.getElementById('cueRule'),
     cueBox: document.getElementById('cueBox'),
-    distractorLeft: document.getElementById('distractorLeft'),
+    stage: document.getElementById('stage'),
     limitTimeBtn: document.getElementById('limitTimeBtn'),
     limitQuestionsBtn: document.getElementById('limitQuestionsBtn'),
     limitValue: document.getElementById('limitValue'),
@@ -1331,16 +1480,16 @@
     finalMistakes: document.getElementById('finalMistakes'),
     resultsCloseBtn: document.getElementById('resultsCloseBtn'),
     resultsCopyBtn: document.getElementById('resultsCopyBtn'),
-    distractorRight: document.getElementById('distractorRight'),
-    levelButtons: document.getElementById('levelButtons'),
+    levelSlider: document.getElementById('levelSlider'),
     levelReadout: document.getElementById('levelReadout'),
     mainStartBtn: document.getElementById('mainStartBtn'),
     mainStopBtn: document.getElementById('mainStopBtn'),
     cueHelp: document.getElementById('cueHelp'),
     stimulusGrid: document.getElementById('stimulusGrid'),
     buttonRow: document.getElementById('buttonRow'),
-    sameBtn: document.getElementById('sameBtn'),
-    differentBtn: document.getElementById('differentBtn'),
+    meaningBtn: document.getElementById('meaningBtn'),
+    systemBtn: document.getElementById('systemBtn'),
+    neitherBtn: document.getElementById('neitherBtn'),
     nBackBtn: document.getElementById('nBackBtn'),
     feedback: document.getElementById('feedback'),
     resultsOverlay: document.getElementById('resultsOverlay'),
@@ -1525,7 +1674,7 @@
       rmtHighlightSelected: els.rmtHighlightSelected.checked,
       minNumber,
       maxNumber,
-      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 0, 10),
+      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 1, 10),
       keepLevelFixed: els.keepLevelFixed.checked,
       sessionSeconds: parseIntField(els.sessionSeconds.value, defaults.sessionSeconds, 30, 999999),
       cueDurationMs: parseIntField(els.cueDurationMs.value, defaults.cueDurationMs, 0, 999999),
@@ -1558,7 +1707,7 @@
       els.rmtHighlightSelected.checked = Boolean(settings.rmtHighlightSelected);
       els.minNumber.value = String(parseIntField(settings.minNumber, defaults.minNumber, 1, 999999));
       els.maxNumber.value = String(Math.max(parseIntField(settings.maxNumber, defaults.maxNumber, 2, 999999), Number(els.minNumber.value) + 1));
-      els.startingLevel.value = String(parseIntField(settings.startingLevel, defaults.startingLevel, 0, 10));
+      els.startingLevel.value = String(parseIntField(settings.startingLevel, defaults.startingLevel, 1, 10));
       els.keepLevelFixed.checked = Boolean(settings.keepLevelFixed);
       els.sessionSeconds.value = String(parseIntField(settings.sessionSeconds, defaults.sessionSeconds, 30, 999999));
       els.cueDurationMs.value = String(parseIntField(settings.cueDurationMs, defaults.cueDurationMs, 0, 999999));
@@ -1589,7 +1738,7 @@
       rmtHighlightSelected: els.rmtHighlightSelected.checked,
       minNumber,
       maxNumber,
-      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 0, 10),
+      startingLevel: parseIntField(els.startingLevel.value, defaults.startingLevel, 1, 10),
       keepLevelFixed: els.keepLevelFixed.checked,
       sessionSeconds: parseIntField(els.sessionSeconds.value, defaults.sessionSeconds, 30, 999999),
       cueDurationMs: parseIntField(els.cueDurationMs.value, defaults.cueDurationMs, 0, 999999),
@@ -1600,8 +1749,21 @@
       showStatsDuringSession: els.showStatsDuringSession.checked,
       showRuleDuringStimulus: els.showRuleDuringStimulus.checked,
       buzzerOnWrong: els.buzzerOnWrong.checked,
+      // Three-way game (MEANING / SYSTEM / NEITHER): these older options no longer apply.
+      ...THREE_WAY_FORCED,
     };
   }
+
+  const THREE_WAY_FORCED = {
+    mode: 'classic',
+    stimuliCount: 2,
+    rmtMode: false,
+    negationMode: false,
+    nBackMode: false,
+    variableNBack: false,
+    cueDurationMs: 0,
+    showRuleDuringStimulus: false,
+  };
 
   function getRulesForMode(mode) {
     if (mode === 'multiPlus') return multiPlusRules;
@@ -2051,13 +2213,13 @@
     els.overlay.classList.remove('open');
   }
 
-  const MIN_LEVEL = 0;
+  const MIN_LEVEL = 1;
   const MAX_LEVEL = 10;
   function clampLevel(level) {
-    return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.round(Number(level) || 0)));
+    return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.round(Number(level) || MIN_LEVEL)));
   }
   function levelToWindow(level) {
-    // Level 0 = 2000ms, level 10 = 200ms (180ms per level)
+    // Level 1 = 1820ms ... level 10 = 200ms (180ms per level)
     return 2000 - (clampLevel(level) * 180);
   }
 
@@ -2065,8 +2227,9 @@
     const settings = readSettings();
     const mainAnswered = Boolean(state.currentTrial?.mainAnswered);
     const nBackAnswered = Boolean(state.currentTrial?.nBackAnswered);
-    els.sameBtn.disabled = locked || mainAnswered;
-    els.differentBtn.disabled = locked || mainAnswered;
+    els.meaningBtn.disabled = locked || mainAnswered;
+    els.systemBtn.disabled = locked || mainAnswered;
+    els.neitherBtn.disabled = locked || mainAnswered;
     els.nBackBtn.disabled = locked || !settings.nBackMode || nBackAnswered;
   }
 
@@ -2074,9 +2237,6 @@
     els.stimulusGrid.classList.add('hidden');
     els.stimulusGrid.innerHTML = '';
     els.stimulusGrid.style.removeProperty('--grid-cols');
-    // Distractors disappear at the same moment as the stimuli.
-    els.distractorLeft.textContent = '';
-    els.distractorRight.textContent = '';
   }
 
   function setFeedback(kind, text) {
@@ -2091,29 +2251,29 @@
     const themes = {
       default: {
         vars: {
-          '--bg': '#0e1222',
-          '--panel': '#161b31',
-          '--panel-2': '#1f2741',
-          '--text': '#eef3ff',
-          '--muted': '#aab5db',
-          '--accent': '#8da2ff',
-          '--accent-2': '#60dcc8',
+          '--bg': '#0e0f11',
+          '--panel': '#17181b',
+          '--panel-2': '#1f2024',
+          '--text': '#f1f1f3',
+          '--muted': '#a7a9b0',
+          '--accent': '#c8cad0',
+          '--accent-2': '#e4e5e9',
           '--danger': '#ff8d9d',
           '--warn': '#ffd77f',
-          '--surface': 'rgba(21, 26, 44, .96)',
-          '--surface-2': 'rgba(29, 35, 58, .94)',
-          '--surface-3': 'rgba(37, 44, 74, .96)',
-          '--border': 'rgba(150, 166, 255, .20)',
-          '--chip-bg': 'rgba(255,255,255,.06)',
-          '--cue-bg': 'rgba(141, 162, 255, .11)',
-          '--grid-bg': 'rgba(255,255,255,.05)',
-          '--input-bg': 'rgba(11, 14, 27, .94)',
-          '--button-same-start': '#8fa4ff',
-          '--button-same-end': '#6377ff',
-          '--button-diff-start': '#60dcc8',
-          '--button-diff-end': '#21b59d',
+          '--surface': 'rgba(22, 23, 26, .96)',
+          '--surface-2': 'rgba(30, 31, 35, .94)',
+          '--surface-3': 'rgba(38, 39, 44, .96)',
+          '--border': 'rgba(205, 208, 215, .16)',
+          '--chip-bg': 'rgba(255,255,255,.05)',
+          '--cue-bg': 'rgba(205, 208, 215, .07)',
+          '--grid-bg': 'rgba(255,255,255,.045)',
+          '--input-bg': 'rgba(12, 12, 14, .94)',
+          '--button-same-start': '#e6e7ea',
+          '--button-same-end': '#b6b8bf',
+          '--button-diff-start': '#d3d5da',
+          '--button-diff-end': '#9fa2a9',
         },
-        background: 'radial-gradient(1200px 700px at 10% 10%, rgba(141,162,255,.16), transparent 45%), radial-gradient(900px 500px at 90% 15%, rgba(96,220,200,.10), transparent 40%), linear-gradient(180deg, #0b0f1a 0%, #10152a 100%)',
+        background: 'radial-gradient(1200px 700px at 10% 10%, rgba(205,208,215,.08), transparent 45%), radial-gradient(900px 500px at 90% 15%, rgba(205,208,215,.05), transparent 40%), linear-gradient(180deg, #0b0c0e 0%, #141518 100%)',
       },
       dark: {
         vars: {
@@ -2235,10 +2395,7 @@
     els.stimulusGrid.classList.remove('hidden');
     els.stimulusGrid.style.setProperty('--grid-cols', String(trial.gridCols || 2));
     els.stimulusGrid.classList.toggle('pair', trial.stimuli.length === 2);
-    // Distractors appear at the same moment as the stimuli.
-    if (!trial.distractors) trial.distractors = [randomDistractor(), randomDistractor()];
-    els.distractorLeft.textContent = trial.distractors[0];
-    els.distractorRight.textContent = trial.distractors[1];
+
     trial.stimuli.forEach((stimulus, index) => {
       const cell = document.createElement('div');
       cell.className = 'stimulus';
@@ -2583,6 +2740,104 @@
     };
   }
 
+  // ---- Three-way trial: MEANING (same number, different systems),
+  // SYSTEM (same writing system, different numbers), NEITHER (both differ).
+  const HOMOGLYPHS = {
+    'Α': 'A', 'Β': 'B', 'Ε': 'E', 'Ζ': 'Z', 'Η': 'H', 'Ι': 'I', 'Κ': 'K', 'Μ': 'M', 'Ν': 'N', 'Ο': 'O', 'Ρ': 'P', 'Τ': 'T', 'Υ': 'Y', 'Χ': 'X',
+    'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'У': 'Y', 'Х': 'X',
+  };
+  function visualKey(str) {
+    return Array.from(String(str), (ch) => HOMOGLYPHS[ch] || ch).join('');
+  }
+
+  let threeWayCache = null;
+  function getThreeWayCandidates(settings) {
+    const key = `${settings.writingSystemsCount}|${settings.minNumber}|${settings.maxNumber}`;
+    if (threeWayCache && threeWayCache.key === key) return threeWayCache;
+    const systems = getWritingSystemPool(settings.writingSystemsCount);
+    const all = [];
+    const looks = new Map();
+    const hi = Math.min(settings.maxNumber, settings.minNumber + 400);
+    systems.forEach((system) => {
+      for (let v = settings.minNumber; v <= hi; v += 1) {
+        const text = formatNumberBySystem(v, system);
+        const vk = visualKey(text);
+        all.push({ system, value: v, text, vk });
+        looks.set(vk, (looks.get(vk) || 0) + 1);
+      }
+    });
+    // Drop anything that looks identical to a different symbol (e.g. Roman "I" vs Latin letter "I").
+    const clean = all.filter((c) => looks.get(c.vk) === 1);
+    const bySystem = new Map();
+    const byValue = new Map();
+    clean.forEach((c) => {
+      if (!bySystem.has(c.system.id)) bySystem.set(c.system.id, []);
+      bySystem.get(c.system.id).push(c);
+      if (!byValue.has(c.value)) byValue.set(c.value, []);
+      byValue.get(c.value).push(c);
+    });
+    threeWayCache = {
+      key,
+      clean,
+      systemGroups: [...bySystem.values()].filter((g) => g.length >= 2),
+      valueGroups: [...byValue.values()].filter((g) => new Set(g.map((c) => c.system.id)).size >= 2),
+    };
+    return threeWayCache;
+  }
+
+  function pickTwo(list) {
+    const a = randInt(0, list.length - 1);
+    let b = randInt(0, list.length - 2);
+    if (b >= a) b += 1;
+    return [list[a], list[b]];
+  }
+
+  function buildThreeWayPair(answer, pools) {
+    if (answer === 'meaning') {
+      if (!pools.valueGroups.length) return null;
+      for (let i = 0; i < 40; i += 1) {
+        const [a, b] = pickTwo(randomItem(pools.valueGroups));
+        if (a.system.id !== b.system.id) return [a, b];
+      }
+      return null;
+    }
+    if (answer === 'system') {
+      if (!pools.systemGroups.length) return null;
+      return pickTwo(randomItem(pools.systemGroups));
+    }
+    for (let i = 0; i < 80; i += 1) {
+      const [a, b] = pickTwo(pools.clean);
+      if (a.system.id !== b.system.id && a.value !== b.value) return [a, b];
+    }
+    return null;
+  }
+
+  const THREE_WAY_LABELS = { meaning: 'MEANING', system: 'SYSTEM', neither: 'NEITHER' };
+
+  function buildThreeWayTrial(settings) {
+    const pools = getThreeWayCandidates(settings);
+    const first = randomItem(['meaning', 'system', 'neither']);
+    const order = [first, ...['meaning', 'system', 'neither'].filter((a) => a !== first)];
+    for (const answer of order) {
+      const pair = buildThreeWayPair(answer, pools);
+      if (pair) {
+        return {
+          type: 'pair',
+          rule: { id: answer, word: THREE_WAY_LABELS[answer], label: THREE_WAY_LABELS[answer] },
+          expected: answer,
+          stimuli: pair.map((c) => c.text),
+          gridCols: 2,
+          highlightIndices: [],
+          mainAnswered: false,
+        };
+      }
+    }
+    return {
+      type: 'pair', rule: { id: 'meaning', label: 'MEANING' }, expected: 'meaning',
+      stimuli: ['1', 'I'], gridCols: 2, highlightIndices: [], mainAnswered: false,
+    };
+  }
+
   function buildTrial() {
     const settings = readSettings();
     const targetSame = Math.random() < 0.5;
@@ -2606,6 +2861,7 @@
   }
 
   function getTrialModeLabel(settings) {
+    return `Meaning / System / Neither (${settings.writingSystemsCount} systems, ${settings.minNumber}–${settings.maxNumber})`;
     if (settings.stimuliCount > 2) {
       if (settings.mode === 'classic') return settings.rmtMode ? `Classic + RMT grid ×${settings.stimuliCount}` : `Classic grid ×${settings.stimuliCount}`;
       if (settings.mode === 'multi') return `Multi grid ×${settings.stimuliCount}`;
@@ -2737,13 +2993,13 @@
         state.level = Math.max(MIN_LEVEL, state.level - 1);
         state.consecutiveMistakes = 0;
         state.lastPromotionAt = state.trialCount;
-        updateCue('LEVEL DOWN', `Now level ${state.level}`, 'Three consecutive mistakes lowered the level.');
+        els.feedback.textContent += ` • Level down → ${state.level}`;
       } else if (state.trialResults.length >= 32) {
         const mistakes = state.trialResults.filter((v) => !v).length;
         if (mistakes < 4 && state.trialCount - state.lastPromotionAt >= 32 && state.level < MAX_LEVEL) {
           state.level += 1;
           state.lastPromotionAt = state.trialCount;
-          updateCue('LEVEL UP', `Now level ${state.level}`, 'Your recent performance earned an increase in speed.');
+          els.feedback.textContent += ` • Level up → ${state.level}`;
         }
       }
     } else {
@@ -2762,12 +3018,11 @@
   function finishTrial(outcome) {
     if (state.responseTimer) clearTimeout(state.responseTimer);
     const settings = readSettings();
-    const mainLabel = outcome.mainChoice === 'same'
-      ? 'SAME'
-      : outcome.mainChoice === 'different'
-        ? 'DIFFERENT'
-        : 'No SAME/DIFFERENT answer';
-    let feedbackText = outcome.mainCorrect ? `Correct — ${mainLabel}` : `Missed — ${mainLabel}`;
+    const answerLabel = THREE_WAY_LABELS[state.currentTrial?.expected] || '';
+    let feedbackText;
+    if (outcome.mainCorrect) feedbackText = `Correct — ${answerLabel}`;
+    else if (!outcome.mainChoice) feedbackText = `Too slow — it was ${answerLabel}`;
+    else feedbackText = `Wrong — it was ${answerLabel}`;
 
     if (settings.nBackMode) {
       if (outcome.nBackCorrect) {
@@ -2885,8 +3140,7 @@
     if (settings.nBackMode && !settings.variableNBack) {
       state.currentNBack = settings.nBackSteps;
     }
-    let trial = applyNegation(buildTrial(), settings);
-    trial = attachNBackTarget(trial, settings);
+    const trial = buildThreeWayTrial(settings);
     state.currentTrial = trial;
     state.responseLocked = false;
     lockButtons(true);
@@ -2900,7 +3154,6 @@
       if (!state.running) return;
       state.phase = 'response';
       renderTrial(state.currentTrial);
-      showResponseCue(state.currentTrial, settings);
       lockButtons(false);
 
       const windowMs = levelToWindow(state.level);
@@ -2912,15 +3165,7 @@
       }, windowMs);
     };
 
-    if (settings.cueDurationMs <= 0) {
-      beginResponsePhase();
-      return;
-    }
-
-    state.phase = 'cue';
-    showRuleWord(state.currentTrial, state.nBackModeChangedMessage ? `N-back changed • n=${state.currentNBack}` : '');
-    state.nBackModeChangedMessage = false;
-    state.cueTimer = setTimeout(beginResponsePhase, settings.cueDurationMs);
+    beginResponsePhase();
   }
 
   function startTimers(sessionSeconds) {
@@ -2951,6 +3196,7 @@
 
     state.running = true;
     state.phase = 'idle';
+    els.stage.classList.add('playing');
     state.level = clampLevel(settings.startingLevel);
     state.sessionStartLevel = state.level;
     state.trialCount = 0;
@@ -3022,24 +3268,13 @@
   }
 
   function renderLevelPicker() {
-    if (!els.levelButtons.children.length) {
-      for (let lvl = MIN_LEVEL; lvl <= MAX_LEVEL; lvl += 1) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'level-btn';
-        btn.textContent = String(lvl);
-        btn.dataset.level = String(lvl);
-        btn.title = `${(levelToWindow(lvl) / 1000).toFixed(2)}s to respond`;
-        btn.addEventListener('click', () => setLevel(lvl));
-        els.levelButtons.appendChild(btn);
-      }
-    }
     const current = clampLevel(state.level);
-    Array.from(els.levelButtons.children).forEach((btn) => {
-      btn.classList.toggle('active', Number(btn.dataset.level) === current);
-    });
+    if (document.activeElement !== els.levelSlider) els.levelSlider.value = String(current);
+    const pct = ((current - MIN_LEVEL) / (MAX_LEVEL - MIN_LEVEL)) * 100;
+    els.levelSlider.style.setProperty('--fill', `${pct}%`);
     els.levelReadout.textContent = `${current} • ${(levelToWindow(current) / 1000).toFixed(2)}s`;
   }
+
 
   function setLevel(level) {
     state.level = clampLevel(level);
@@ -3118,6 +3353,7 @@
   function endSession({ manual = false } = {}) {
     if (!state.running) return;
     state.running = false;
+    els.stage.classList.remove('playing');
     clearTimeout(state.cueTimer);
     clearTimeout(state.responseTimer);
     clearInterval(state.sessionTimer);
@@ -3169,19 +3405,19 @@
 
   function handleKeydown(e) {
     if (!state.running || state.phase !== 'response' || state.responseLocked) return;
-    if (e.key === 's' || e.key === 'ArrowLeft') {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const map = {
+      '1': 'meaning', a: 'meaning', ArrowLeft: 'meaning',
+      '2': 'system', s: 'system', ArrowDown: 'system',
+      '3': 'neither', d: 'neither', ArrowRight: 'neither',
+    };
+    if (map[key]) {
       e.preventDefault();
-      respond('same');
-    }
-    if (e.key === 'd' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      respond('different');
-    }
-    if (e.key === 'n') {
-      e.preventDefault();
-      respondNBack();
+      respond(map[key]);
     }
   }
+
 
   function bindSettingUpdate() {
     saveSettings();
@@ -3198,6 +3434,8 @@
   els.overlay.addEventListener('click', () => { closeSettings(); closeProgress(); });
   els.mainStartBtn.addEventListener('click', startSession);
   els.mainStopBtn.addEventListener('click', stopSession);
+  els.levelSlider.addEventListener('input', () => setLevel(Number(els.levelSlider.value)));
+  els.levelSlider.addEventListener('change', () => els.levelSlider.blur());
   els.resultsCloseBtn.addEventListener('click', () => els.resultsOverlay.classList.remove('open'));
   els.resultsCopyBtn.addEventListener('click', copyResults);
   document.addEventListener('keydown', (e) => {
@@ -3208,8 +3446,9 @@
   els.limitValue.addEventListener('change', () => { readLimitInput(); renderSessionLimit(); updateHud(); });
   els.limitValue.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { els.limitValue.blur(); } });
   els.resetDefaultsBtn.addEventListener('click', resetDefaults);
-  els.sameBtn.addEventListener('click', () => respond('same'));
-  els.differentBtn.addEventListener('click', () => respond('different'));
+  els.meaningBtn.addEventListener('click', () => respond('meaning'));
+  els.systemBtn.addEventListener('click', () => respond('system'));
+  els.neitherBtn.addEventListener('click', () => respond('neither'));
   els.nBackBtn.addEventListener('click', respondNBack);
   document.addEventListener('keydown', handleKeydown);
   window.addEventListener('beforeunload', () => {

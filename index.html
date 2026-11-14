@@ -610,6 +610,7 @@
     .button-row .answer-btn:hover, .button-row .answer-btn:active { transform: none; }
     .button-row.nback-enabled .answer-btn.nback { margin-top: 8px; border-radius: 18px; }
     .button-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .button-row.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .button-row .answer-btn.choice {
       background: #ffffff;
       color: #12172a;
@@ -617,7 +618,7 @@
       border-radius: 0;
     }
     .button-row .answer-btn.choice:first-child { border-radius: 18px 0 0 18px; }
-    .button-row .answer-btn.choice:nth-child(3) { border-radius: 0 18px 18px 0; }
+    .button-row:not(.four) #domainBtn, .button-row.four #neitherBtn { border-radius: 0 18px 18px 0; }
     .button-row .answer-btn.choice + .answer-btn.choice { border-left: 1px solid rgba(18,23,42,.18); }
     .button-row .answer-btn.choice:hover:not(:disabled) { filter: brightness(.94); }
     .button-row .answer-btn.choice:disabled { opacity: .55; }
@@ -1086,7 +1087,7 @@
         grid-template-columns: repeat(11, minmax(0, 1fr));
         gap: 3px;
       }
-      .level-slider { flex: 1; width: auto; height: 28px; }
+      .level-slider { flex: 1; width: auto; min-width: 0; height: 28px; }
       #levelReadout { min-width: 0; text-align: right; font-size: .66rem; }
 
       .stimulus-grid.pair .stimulus {
@@ -1099,6 +1100,13 @@
         letter-spacing: .02em;
         padding: 10px 2px;
       }
+      /* Four answers on a phone: two rows of two, so each stays easy to hit. */
+      .button-row.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .button-row.four .answer-btn.choice { min-height: clamp(50px, 6.6vh, 60px); font-size: 1rem; letter-spacing: .06em; }
+      .button-row.four #meaningBtn { border-radius: 18px 0 0 0; }
+      .button-row.four #systemBtn { border-radius: 0 18px 0 0; }
+      .button-row.four #domainBtn { border-radius: 0 0 0 18px; border-left: 0; border-top: 1px solid rgba(18,23,42,.18); }
+      .button-row.four #neitherBtn { border-radius: 0 0 18px 0; border-top: 1px solid rgba(18,23,42,.18); }
       .footnote { display: none; }
       .cue-rule { font-size: 1.05rem; }
       .results { padding: 0; }
@@ -1179,7 +1187,8 @@
           <div class="button-row" id="buttonRow">
             <button class="answer-btn choice" id="meaningBtn" title="Keys: 1, A or ←" disabled>MEANING</button>
             <button class="answer-btn choice" id="systemBtn" title="Keys: 2, S or ↓" disabled>SYSTEM</button>
-            <button class="answer-btn choice" id="neitherBtn" title="Keys: 3, D or →" disabled>NEITHER</button>
+            <button class="answer-btn choice" id="domainBtn" title="Keys: 3, D or →" disabled>DOMAIN</button>
+            <button class="answer-btn choice hidden" id="neitherBtn" title="Keys: 4, F or ↑" disabled>NEITHER</button>
             <button class="answer-btn nback hidden" id="nBackBtn" disabled>N-BACK MATCH</button>
           </div>
         </div>
@@ -1304,7 +1313,7 @@
         <div class="setting-help">Turn this off to show only the subset type (row, column, diagonal, or corners) and make the participant check them all.</div>
       </div>
 
-      <div class="setting">
+      <div class="setting hidden">
         <label>Number range</label>
         <div class="inline-grid">
           <input id="minNumber" type="text" inputmode="numeric" value="1" />
@@ -1318,7 +1327,7 @@
 
       <div class="setting">
         <label class="check-row"><input id="keepLevelFixed" type="checkbox" /> Keep level fixed during the session</label>
-        <div class="setting-help">Prevents automatic level up or level down during the session. The level you pick above the rule stays active until the session ends.</div>
+        <div class="setting-help">Prevents automatic level up or level down during the session. The level you pick with the slider stays active until the session ends.</div>
       </div>
 
       <!-- Session length is set with the TIME / QUESTIONS control beside STOP; kept here as hidden storage. -->
@@ -1579,6 +1588,7 @@
     buttonRow: document.getElementById('buttonRow'),
     meaningBtn: document.getElementById('meaningBtn'),
     systemBtn: document.getElementById('systemBtn'),
+    domainBtn: document.getElementById('domainBtn'),
     neitherBtn: document.getElementById('neitherBtn'),
     nBackBtn: document.getElementById('nBackBtn'),
     feedback: document.getElementById('feedback'),
@@ -2309,8 +2319,23 @@
     return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.round(Number(level) || MIN_LEVEL)));
   }
   function levelToWindow(level) {
-    // Level 1 = 1820ms ... level 10 = 200ms (180ms per level)
-    return 2000 - (clampLevel(level) * 180);
+    // Level 1 = 3000ms ... level 10 = 200ms, in equal steps (about 311ms per level)
+    return Math.round(3000 - ((clampLevel(level) - MIN_LEVEL) * (2800 / (MAX_LEVEL - MIN_LEVEL))));
+  }
+
+  // The level also sets how much ground the content covers:
+  // level 1 = numbers 1–12 and the first 12 elements; level 10 = numbers 1–50 and all 118 elements.
+  const NUMBER_MAX_EASY = 12;
+  const NUMBER_MAX_HARD = 50;
+  const ELEMENT_COUNT_EASY = 12;
+  function levelFraction(level) {
+    return (clampLevel(level) - MIN_LEVEL) / (MAX_LEVEL - MIN_LEVEL);
+  }
+  function numberMaxForLevel(level) {
+    return Math.round(NUMBER_MAX_EASY + ((NUMBER_MAX_HARD - NUMBER_MAX_EASY) * levelFraction(level)));
+  }
+  function elementCountForLevel(level) {
+    return Math.round(ELEMENT_COUNT_EASY + ((ELEMENTS.length - ELEMENT_COUNT_EASY) * levelFraction(level)));
   }
 
   function lockButtons(locked) {
@@ -2319,6 +2344,7 @@
     const nBackAnswered = Boolean(state.currentTrial?.nBackAnswered);
     els.meaningBtn.disabled = locked || mainAnswered;
     els.systemBtn.disabled = locked || mainAnswered;
+    els.domainBtn.disabled = locked || mainAnswered;
     els.neitherBtn.disabled = locked || mainAnswered;
     els.nBackBtn.disabled = locked || !settings.nBackMode || nBackAnswered;
   }
@@ -2900,6 +2926,10 @@
   function renderContentToggle() {
     els.contentNumbers.checked = content.numbers;
     els.contentElements.checked = content.elements;
+    // NEITHER (a number next to an element) is only possible when both boxes are ticked, so it only shows then.
+    const mixed = content.numbers && content.elements;
+    els.buttonRow.classList.toggle('four', mixed);
+    els.neitherBtn.classList.toggle('hidden', !mixed);
   }
 
   function setContent(which, on) {
@@ -2930,35 +2960,37 @@
 
   let threeWayCache = null;
   function getThreeWayCandidates(settings) {
-    const key = `${settings.writingSystemsCount}|${settings.minNumber}|${settings.maxNumber}|${content.numbers}|${content.elements}`;
+    const numberMax = numberMaxForLevel(state.level);
+    const elementCount = elementCountForLevel(state.level);
+    const key = `${settings.writingSystemsCount}|${numberMax}|${elementCount}|${content.numbers}|${content.elements}`;
     if (threeWayCache && threeWayCache.key === key) return threeWayCache;
     const domains = {};
     const numberLooks = new Set();
 
     if (content.numbers) {
+      // Look-alikes are judged over the whole 1–50 span (not just this level's range),
+      // so a symbol always means the same thing at every level.
       const systems = getWritingSystemPool(settings.writingSystemsCount);
       const all = [];
       const looks = new Map();
-      const hi = Math.min(settings.maxNumber, settings.minNumber + 400);
       systems.forEach((system) => {
-        for (let v = settings.minNumber; v <= hi; v += 1) {
+        for (let v = 1; v <= NUMBER_MAX_HARD; v += 1) {
           const text = formatNumberBySystem(v, system);
           const vk = visualKey(text);
           all.push({ system, value: v, text, vk });
           looks.set(vk, (looks.get(vk) || 0) + 1);
         }
       });
-      // Drop anything that looks identical to a different symbol (e.g. Roman "I" vs Latin letter "I").
-      let clean = all.filter((c) => looks.get(c.vk) === 1);
+      // Drop anything that looks identical to a different number (e.g. Roman "I" vs Latin letter "I"),
+      // then keep only this level's range.
+      let clean = all.filter((c) => looks.get(c.vk) === 1 && c.value <= numberMax);
       // Every way a number can look on screen (used below so an element symbol never looks like a number).
       all.forEach((c) => numberLooks.add(c.vk));
       if (content.elements) {
-        // Numbers that look like an element symbol (Roman "V", Latin letter "F", ...).
-        // If they all come from one writing system, any pair of them is SYSTEM under either reading, so they stay.
-        // If they span several systems, a pair such as "V / F" could be read two ways, so they are left out.
+        // Numbers and elements are mixed, so a number that looks like an element symbol (Roman "V" = Vanadium,
+        // Roman "I" = Iodine, Latin letter "F" = Fluorine, ...) would have two valid answers. Leave those out.
         const symbolLooks = new Set(ELEMENTS.map(([symbol]) => visualKey(symbol)));
-        const dualSystems = new Set(clean.filter((c) => symbolLooks.has(c.vk)).map((c) => c.system.id));
-        if (dualSystems.size > 1) clean = clean.filter((c) => !symbolLooks.has(c.vk));
+        clean = clean.filter((c) => !symbolLooks.has(c.vk));
       }
       domains.numbers = groupCandidates(clean);
     }
@@ -2967,7 +2999,7 @@
       const symbolSystem = { id: 'element-symbol' };
       const nameSystem = { id: 'element-name' };
       const cands = [];
-      ELEMENTS.forEach(([symbol, name], index) => {
+      ELEMENTS.slice(0, elementCount).forEach(([symbol, name], index) => {
         const value = `element-${index + 1}`;
         // With numbers also on, skip symbols that could be read as a number (e.g. "V" = Roman 5).
         if (!numberLooks.has(visualKey(symbol))) cands.push({ system: symbolSystem, value, text: symbol, vk: visualKey(symbol) });
@@ -3000,6 +3032,7 @@
       if (!pools.systemGroups.length) return null;
       return pickTwo(randomItem(pools.systemGroups));
     }
+    // 'domain': two numbers or two elements with a different meaning and a different system.
     for (let i = 0; i < 80; i += 1) {
       const [a, b] = pickTwo(pools.clean);
       if (a.system.id !== b.system.id && a.value !== b.value) return [a, b];
@@ -3007,36 +3040,45 @@
     return null;
   }
 
-  const THREE_WAY_LABELS = { meaning: 'MEANING', system: 'SYSTEM', neither: 'NEITHER' };
+  const THREE_WAY_LABELS = { meaning: 'MEANING', system: 'SYSTEM', domain: 'DOMAIN', neither: 'NEITHER' };
 
   function buildThreeWayTrial(settings) {
     const { domains } = getThreeWayCandidates(settings);
-    // Each round is either a numbers round or an elements round (picked at random when both are ticked).
     const names = Object.keys(domains);
+    const mixed = names.length > 1;
+    // MEANING / SYSTEM / DOMAIN compare two numbers or two elements:
+    // DOMAIN = they share only their domain (different meaning, different system).
+    // NEITHER = a number next to an element, which share nothing. Only possible when both boxes are ticked.
+    const kinds = mixed ? ['meaning', 'system', 'domain', 'neither'] : ['meaning', 'system', 'domain'];
+    const first = randomItem(kinds);
+    const order = [first, ...kinds.filter((a) => a !== first)];
     const firstDomain = randomItem(names);
     const domainOrder = [firstDomain, ...names.filter((d) => d !== firstDomain)];
-    const first = randomItem(['meaning', 'system', 'neither']);
-    const order = [first, ...['meaning', 'system', 'neither'].filter((a) => a !== first)];
-    for (const domain of domainOrder) {
-      for (const answer of order) {
+    const make = (answer, pair, domain) => ({
+      type: 'pair',
+      domain,
+      rule: { id: answer, word: THREE_WAY_LABELS[answer], label: THREE_WAY_LABELS[answer] },
+      expected: answer,
+      stimuli: pair.map((c) => c.text),
+      gridCols: 2,
+      highlightIndices: [],
+      mainAnswered: false,
+    });
+    for (const answer of order) {
+      if (answer === 'neither') {
+        const number = randomItem(domains.numbers.clean);
+        const element = randomItem(domains.elements.clean);
+        if (number && element) return make('neither', Math.random() < 0.5 ? [number, element] : [element, number], 'mixed');
+        continue;
+      }
+      for (const domain of domainOrder) {
         const pair = buildThreeWayPair(answer, domains[domain]);
-        if (pair) {
-          return {
-            type: 'pair',
-            domain,
-            rule: { id: answer, word: THREE_WAY_LABELS[answer], label: THREE_WAY_LABELS[answer] },
-            expected: answer,
-            stimuli: pair.map((c) => c.text),
-            gridCols: 2,
-            highlightIndices: [],
-            mainAnswered: false,
-          };
-        }
+        if (pair) return make(answer, pair, domain);
       }
     }
     return {
       type: 'pair', rule: { id: 'meaning', label: 'MEANING' }, expected: 'meaning',
-      stimuli: ['1', 'I'], gridCols: 2, highlightIndices: [], mainAnswered: false,
+      stimuli: ['2', 'II'], gridCols: 2, highlightIndices: [], mainAnswered: false,
     };
   }
 
@@ -3064,9 +3106,9 @@
 
   function getTrialModeLabel(settings) {
     const parts = [];
-    if (content.numbers) parts.push(`Numbers (${settings.writingSystemsCount} systems, ${settings.minNumber}–${settings.maxNumber})`);
-    if (content.elements) parts.push('Elements (symbol / name)');
-    return parts.join(' + ');
+    if (content.numbers) parts.push(`Numbers 1–${numberMaxForLevel(state.level)} (${settings.writingSystemsCount} systems)`);
+    if (content.elements) parts.push(`Elements 1–${elementCountForLevel(state.level)}`);
+    return parts.join(' + ') + (parts.length > 1 ? ', mixed pairs' : '');
     if (settings.stimuliCount > 2) {
       if (settings.mode === 'classic') return settings.rmtMode ? `Classic + RMT grid ×${settings.stimuliCount}` : `Classic grid ×${settings.stimuliCount}`;
       if (settings.mode === 'multi') return `Multi grid ×${settings.stimuliCount}`;
@@ -3323,6 +3365,8 @@
   function respond(choice) {
     if (!state.running || state.phase !== 'response' || state.responseLocked || !state.currentTrial) return;
     if (state.currentTrial.mainAnswered) return;
+    // NEITHER only exists when numbers and elements are mixed.
+    if (choice === 'neither' && !(content.numbers && content.elements)) return;
 
     state.currentTrial.mainAnswered = true;
     state.currentTrial.mainChoice = choice;
@@ -3520,6 +3564,7 @@
     const pct = ((current - MIN_LEVEL) / (MAX_LEVEL - MIN_LEVEL)) * 100;
     els.levelSlider.style.setProperty('--fill', `${pct}%`);
     els.levelReadout.textContent = `${current} • ${(levelToWindow(current) / 1000).toFixed(2)}s`;
+    els.levelSlider.title = `Level ${current}: ${(levelToWindow(current) / 1000).toFixed(2)}s per answer, numbers 1–${numberMaxForLevel(current)}, ${elementCountForLevel(current) >= ELEMENTS.length ? 'all' : 'first'} ${elementCountForLevel(current)} elements`;
   }
 
 
@@ -3657,7 +3702,8 @@
     const map = {
       '1': 'meaning', a: 'meaning', ArrowLeft: 'meaning',
       '2': 'system', s: 'system', ArrowDown: 'system',
-      '3': 'neither', d: 'neither', ArrowRight: 'neither',
+      '3': 'domain', d: 'domain', ArrowRight: 'domain',
+      '4': 'neither', f: 'neither', ArrowUp: 'neither',
     };
     if (map[key]) {
       e.preventDefault();
@@ -3699,6 +3745,7 @@
   els.resetDefaultsBtn.addEventListener('click', resetDefaults);
   els.meaningBtn.addEventListener('click', () => respond('meaning'));
   els.systemBtn.addEventListener('click', () => respond('system'));
+  els.domainBtn.addEventListener('click', () => respond('domain'));
   els.neitherBtn.addEventListener('click', () => respond('neither'));
   els.nBackBtn.addEventListener('click', respondNBack);
   document.addEventListener('keydown', handleKeydown);

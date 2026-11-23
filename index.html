@@ -1340,11 +1340,13 @@
     @media (min-width: 901px) {
       .main { display: grid !important; place-items: center; padding: 5vh 32px !important; overflow: hidden; }
       /* The controls set the height of the play area: the symbols and answers end level with them. */
+      /* Both side columns are the feed's width, so the term window sits in the centre of the screen.
+         The controls keep their own width and sit against the term window. */
       .play-wrap {
-        width: min(1320px, 100%); height: auto;
-        grid-template-columns: 220px minmax(0, 1fr) 300px; column-gap: 28px; align-items: stretch;
+        width: min(1720px, 100%); height: auto;   /* session box up to ~1060px wide on large screens */
+        grid-template-columns: 300px minmax(0, 1fr) 300px; column-gap: 28px; align-items: stretch;
       }
-      .controls { padding-top: 0; align-self: start; }
+      .controls { padding-top: 0; align-self: start; justify-self: end; width: 220px; }
       .stage { padding: 0 !important; height: auto !important; align-self: stretch; }
       .play-wrap > .answer-feed, .play-wrap > .answer-feed.empty { padding: 0 0 0 20px; height: auto; contain: size; overflow: hidden; }
       /* Controls grow a little with the window height, and the whole block with them. */
@@ -1354,8 +1356,13 @@
       .step-value { font-size: clamp(2.1rem, 4.2vh, 3rem); }
       .controls .limit-input { font-size: clamp(1.8rem, 3.8vh, 2.7rem); }
     }
+    /* The session box is moved (by script) to the exact centre of the screen; everything else moves with it. */
+    @media (min-width: 901px) {
+      .play-wrap { position: relative; top: var(--centre-shift, 0px); }
+    }
     @media (min-width: 901px) and (max-width: 1200px) {
-      .play-wrap { grid-template-columns: 200px minmax(0, 1fr) 250px; column-gap: 20px; }
+      .play-wrap { grid-template-columns: 250px minmax(0, 1fr) 250px; column-gap: 20px; }
+      .controls { width: 200px; }
     }
 
     /* ---- Labels: Space Mono, caps, wide tracking, bracketed ---- */
@@ -4742,6 +4749,40 @@
     state.autoScale = auto;
   })();
   renderContentToggle();
+
+  // ---- Keep the session box (the framed square: "Waiting for session to begin", then the two symbols)
+  // in the exact centre of the screen. The controls, answer buttons and feed move with it. Desktop only;
+  // on a short screen it moves as far as it can without anything leaving the screen. ----
+  const playWrap = document.querySelector('.play-wrap');
+  function sessionBoxRect() {
+    const box = [els.cueBox, els.stimulusGrid].map((el) => el.getBoundingClientRect()).find((r) => r.height > 0);
+    return box || null;
+  }
+  function centreSessionBox() {
+    if (!playWrap) return;
+    if (window.innerWidth <= 900) { playWrap.style.removeProperty('--centre-shift'); return; }
+    const current = parseFloat(playWrap.style.getPropertyValue('--centre-shift')) || 0;
+    const box = sessionBoxRect();
+    if (!box) return;
+    const wrap = playWrap.getBoundingClientRect();
+    const headerBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom || 0;
+    const margin = 12;
+    // Work from the unshifted position, so repeated calls give the same answer.
+    const boxCentre = (box.top + box.bottom) / 2 - current;
+    const top = wrap.top - current;
+    const bottom = wrap.bottom - current;
+    const want = window.innerHeight / 2 - boxCentre;
+    const shift = Math.round(Math.max(headerBottom + margin - top, Math.min(window.innerHeight - margin - bottom, want)));
+    if (shift !== current) playWrap.style.setProperty('--centre-shift', `${shift}px`);
+  }
+  window.addEventListener('resize', centreSessionBox);
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(() => centreSessionBox());
+    [playWrap, els.stage, els.buttonRow].forEach((el) => el && ro.observe(el));
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(centreSessionBox);
+  requestAnimationFrame(centreSessionBox);
+
   // Clear a saved setting from an earlier, retired mode switch.
   try { localStorage.removeItem('posner-mode-v1'); } catch (_) {}
   updateHud();

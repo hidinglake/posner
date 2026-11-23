@@ -427,6 +427,8 @@
       row-gap: 10px;
       align-items: stretch;
     }
+    .limit-field { display: contents; }
+    .limit-field .limit-unit { display: none; }
     .play-wrap > .footnote { grid-column: 1; }
     .answer-feed {
       display: flex; flex-direction: column; gap: 6px;
@@ -1671,6 +1673,125 @@
       .controls .limit-input { height: 44px !important; font-size: 1.6rem !important; }
       .controls .session-btn { height: 36px !important; }
     }
+
+    /* =====================================================================
+       Phones (≤900px): settings behind Setup. The main screen is the session box (session length in its
+       corner), the time bar, the answers, and one START/STOP button. Setup opens a full-screen sheet.
+       ===================================================================== */
+    .setup-btn, .setup-head, .setup-done, .mini-length, .mobile-session-btn, .mobile-strip { display: none; }
+    @media (max-width: 900px) {
+      .top-actions { gap: 8px; }
+      .setup-btn {
+        display: block; height: 34px; padding: 0 14px; border: 0; border-radius: 2px; cursor: pointer;
+        background: #ffffff; color: #12172a; font-family: var(--f-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+      }
+      .setup-btn:disabled { opacity: .3; cursor: default; }
+      .setup-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      /* The setup sheet: the control column, full screen. */
+      .controls {
+        display: none !important; position: fixed; inset: 0; z-index: 60; overflow-y: auto; overscroll-behavior: contain;
+        background: var(--bg); padding: 0 16px 24px !important; align-content: start;
+        grid-template-areas: "head head" "content content" "pool diff" "autoscale autoscale" "length length" "done done" !important;
+      }
+      body.setup-open .controls { display: grid !important; }
+      body.setup-open { overflow: hidden; }
+      .controls .ctl-session, .controls .ctl-divider { display: none !important; }
+      .setup-head { display: flex; grid-area: head; align-items: center; min-height: 56px; border-bottom: 1px solid var(--rule); margin: 0 -16px 4px; padding: 0 16px; }
+      .setup-head h2 { margin: 0; font-family: var(--f-sans); font-weight: 700; font-size: 1.6rem; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+      .setup-done {
+        display: block; grid-area: done; height: 52px; margin-top: 8px; border: 0; border-radius: 0; cursor: pointer;
+        background: #ffffff; color: #12172a; font-family: var(--f-mono); font-size: 13px; letter-spacing: .2em; text-transform: uppercase;
+      }
+      .setup-done:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      /* Setup sheet: one column, so Pool depth sits above Response window. */
+      .controls { grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-areas: "head" "content" "pool" "diff" "autoscale" "length" "done" !important; }
+      /* Session length: the unit sits beside the number (3 min). */
+      .controls .limit-field { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+      .controls .limit-field .limit-input { width: auto !important; field-sizing: content; min-width: 1ch; padding: 0 !important; }
+      .controls .limit-field .limit-unit { display: none; font-family: var(--f-mono); font-size: 13px; letter-spacing: .12em; color: var(--muted); }
+      .controls .limit-field .limit-unit.is-shown { display: inline; }
+
+      /* Main screen fills the phone: session box grows, everything else keeps its height. */
+      .main { padding: 12px !important; }
+      .play-wrap { row-gap: 16px !important; }
+      .stage {
+        position: relative; display: flex !important; flex-direction: column; gap: 10px;
+        height: calc(100dvh - 82px) !important; min-height: 460px; padding: 0 !important;
+      }
+      .stage .cue-box { flex: 1 1 auto; height: auto !important; min-height: 0 !important; margin: 0 !important; }
+      .stage .stimulus-area { display: flex !important; flex-direction: column; gap: 10px; flex: 0 0 auto; min-height: 0; }
+      .stage.playing .stimulus-area { flex: 1 1 auto; }
+      .stage.playing .stimulus-grid.pair { flex: 1 1 auto; min-height: 0; grid-template-rows: 1fr; }
+      .stage.playing .stimulus-grid.pair .stimulus { height: auto !important; min-height: 0 !important; }
+      /* The time bar is always there (dimmed and full before a session): it is the response window. */
+      .app .stage .time-bar, .app .stage:not(.playing) .time-bar { visibility: visible !important; height: 6px; }
+      .app .stage:not(.playing) .time-bar .time-bar-fill { transform: scaleX(1); opacity: .25; }
+
+      /* Results take the session box's place; the bar, answers and START stay where they are. */
+      .stage .stimulus-area { order: 1; }
+      .stage .mobile-session-btn { order: 2; }
+      .app .stage:has(.results.open) .stimulus-area, .app .stage.results-open .stimulus-area { display: flex !important; }
+      .app .stage:has(.results.open) .stimulus-grid { display: none !important; }
+      .app .stage > .results.open { order: 0; flex: 1 1 auto; min-height: 0; display: grid; place-items: stretch; }
+      .app .stage > .results.open .results-card { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+
+
+      /* Top strip: session length on the left, then the answer feed as chips, newest first. */
+      .mobile-strip {
+        display: flex; flex: 0 0 auto; order: -1; height: 52px; min-width: 0;
+        border: 1px solid var(--rule); background: var(--bg);
+      }
+      .mini-length {
+        display: grid; align-content: center; gap: 2px; flex: 0 0 auto; min-width: 108px;
+        padding: 0 10px; border-right: 1px solid var(--rule);
+      }
+      .mobile-feed {
+        display: flex; flex: 1 1 auto; min-width: 0; overflow-x: hidden; overflow-y: hidden;
+        overscroll-behavior: contain; scrollbar-width: none;
+      }
+      body:not(.session-live) .mobile-feed { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .mobile-feed::-webkit-scrollbar { display: none; }
+      .mobile-feed .feed-item {
+        display: grid !important; grid-template-columns: auto auto; grid-template-rows: auto auto; align-content: center;
+        column-gap: 6px; row-gap: 3px; flex: 0 0 auto; height: 100%; padding: 0 10px; margin: 0;
+        border: 0 !important; border-right: 1px solid var(--rule) !important; border-bottom: 2px solid var(--rule) !important;
+        border-radius: 0 !important; background: transparent; animation: none; white-space: nowrap;
+      }
+      .mobile-feed .feed-item .feed-pair { grid-column: 1; grid-row: 1; font-family: var(--f-sans); font-weight: 500; letter-spacing: -0.02em; color: var(--ink); font-size: 13px !important; white-space: nowrap !important; overflow: visible; }
+      .mobile-feed .feed-item .feed-icon { grid-column: 2; grid-row: 1; width: auto; font-size: 11px; }
+      .mobile-feed .feed-item .feed-answer { grid-column: 1 / -1; grid-row: 2; text-align: left; font-size: 9px !important; letter-spacing: .12em !important; }
+      .mobile-feed .feed-item.ok { border-bottom-color: #3ddc84 !important; }
+      .mobile-feed .feed-item.bad { border-bottom-color: #ff5a6a !important; }
+      .mobile-feed .feed-item.slow { border-bottom-color: #f2c14e !important; }
+      .mobile-feed .feed-item.note { display: flex !important; align-items: center; background: rgba(255,255,255,.07); font-size: 9px; letter-spacing: .12em; }
+      .mobile-feed > .feed-item:nth-child(n) { opacity: 1; }
+      body.session-live .mobile-feed > .feed-item:nth-child(n+4) { opacity: .7; }
+      body.session-live .mobile-feed > .feed-item:nth-child(n+6) { opacity: .45; }
+      /* The strip replaces the feed under the game on phones. */
+      .play-wrap > .answer-feed, .play-wrap > .answer-feed.empty { display: none !important; }
+      .mini-head { font-family: var(--f-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+      .mini-value { font-family: var(--f-sans); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.03em; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+      /* Answers: one row; key numbers hidden (no keyboard on a phone). */
+      #buttonRow, #buttonRow.four { display: grid !important; grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+      .app #buttonRow .answer-btn.choice { min-height: 96px !important; font-size: 10.5px !important; letter-spacing: .08em !important; padding: 0 2px !important; border-radius: 0 !important; }
+      .app #buttonRow .answer-btn.choice::before { display: none; }
+      /* Touch screens keep :hover after a tap; don't leave the last-tapped answer grey. */
+      @media (hover: none) { .app #buttonRow .answer-btn.choice:hover:not(:disabled):not(.picked) { background: #ffffff; } }
+
+      /* One big START / STOP. */
+      .mobile-session-btn {
+        display: block; flex: 0 0 auto; height: 48px; border: 0; border-radius: 0; cursor: pointer;
+        background: #1f9d58; color: #ffffff; font-family: var(--f-mono); font-size: 14px; letter-spacing: .24em; text-transform: uppercase;
+      }
+      .mobile-session-btn.is-stop { background: #c93545; }
+      .mobile-session-btn:disabled { opacity: .3; cursor: default; }
+      .mobile-session-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .stage .feedback { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -1683,6 +1804,7 @@
         </div>
       </div>
       <div class="top-actions">
+        <button class="setup-btn" id="openSetup" aria-label="Session setup" aria-controls="controls">Setup</button>
         <button class="progress-btn" id="openProgress" aria-label="Open progress" title="Progress">↗</button>
         <button class="info-btn" id="openInfo" aria-label="How to play" title="How to play">i</button>
       </div>
@@ -1691,6 +1813,7 @@
     <div class="main">
       <div class="play-wrap">
       <aside class="controls" id="controls" aria-label="Session controls">
+        <div class="setup-head"><h2>Setup</h2></div>
         <div class="ctl-block ctl-content">
           <div class="ctl-head">Content</div>
           <div class="content-toggle" role="group" aria-label="What to practise">
@@ -1730,13 +1853,16 @@
             <button type="button" class="limit-opt active" id="limitTimeBtn" data-type="time">TIME</button>
             <button type="button" class="limit-opt" id="limitQuestionsBtn" data-type="questions">QUESTIONS</button>
           </div>
-          <input class="limit-input" id="limitValue" type="text" inputmode="decimal" value="3" aria-label="Session length" />
-          <span class="limit-unit hidden" id="limitUnit">min</span>
+          <div class="limit-field">
+            <input class="limit-input" id="limitValue" type="text" inputmode="decimal" value="3" aria-label="Session length" />
+            <span class="limit-unit" id="limitUnit">min</span>
+          </div>
         </div>
         <div class="ctl-session">
           <button class="session-btn start" id="mainStartBtn">START</button>
           <button class="session-btn stop" id="mainStopBtn" disabled>STOP</button>
         </div>
+        <button class="setup-done" id="setupDone">Done</button>
       </aside>
       <div class="status-row hidden">
        
@@ -1752,6 +1878,11 @@
           <div id="progressInfo">Trials: 0 • Mistakes: 0 • Streak: 0</div>
         </div>
 
+        <!-- Phones: session length sits in the session box's corner; settings live behind Setup. -->
+        <div class="mobile-strip">
+          <div class="mini-length" id="miniLength" aria-live="off"><span class="mini-head" id="miniLengthHead">Session length</span><span class="mini-value" id="miniLengthValue">3 min</span></div>
+          <div class="mobile-feed" id="mobileFeed" aria-label="Answers this session"></div>
+        </div>
         <div class="cue-box" id="cueBox">
           <div class="cue-center">
             <div class="cue-label hidden" id="cueLabel"></div>
@@ -1773,6 +1904,7 @@
           </div>
         </div>
 
+        <button class="mobile-session-btn" id="mobileSessionBtn">START</button>
         <div class="feedback" id="feedback"></div>
 
         <div class="results" id="resultsOverlay">
@@ -2286,6 +2418,12 @@
     levelSlider: document.getElementById('levelSlider'),
     levelReadout: document.getElementById('levelReadout'),
     mainStartBtn: document.getElementById('mainStartBtn'),
+    openSetup: document.getElementById('openSetup'),
+    setupDone: document.getElementById('setupDone'),
+    miniLengthHead: document.getElementById('miniLengthHead'),
+    miniLengthValue: document.getElementById('miniLengthValue'),
+    mobileSessionBtn: document.getElementById('mobileSessionBtn'),
+    mobileFeed: document.getElementById('mobileFeed'),
     mainStopBtn: document.getElementById('mainStopBtn'),
     cueHelp: document.getElementById('cueHelp'),
     stimulusGrid: document.getElementById('stimulusGrid'),
@@ -2455,6 +2593,10 @@
     return `${h}:${m}:${r}`;
   }
 
+  // One source for the time left, in whole seconds rounded up (3:00 until a full second has passed).
+  function secondsLeftInSession() {
+    return Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000));
+  }
   function formatCountdown(totalSeconds) {
     const s = Math.max(0, Math.floor(totalSeconds));
     const m = String(Math.floor(s / 60)).padStart(2, '0');
@@ -3917,6 +4059,12 @@
     els.levelDisplay.textContent = `${state.level} · ${(levelToWindow(state.level) / 1000).toFixed(2)}s`;
     renderLevelPicker();
     els.mainStartBtn.disabled = state.running || !hasContent();
+    // Phones: one START/STOP button under the answers; Setup can't open mid-session.
+    els.mobileSessionBtn.textContent = state.running ? 'STOP' : 'START';
+    els.mobileSessionBtn.classList.toggle('is-stop', state.running);
+    els.mobileSessionBtn.disabled = !state.running && !hasContent();
+    els.openSetup.disabled = state.running;
+    if (state.running) document.body.classList.remove('setup-open');
     els.mainStartBtn.title = hasContent() ? '' : 'Tick Numbers or Elements to start';
     els.mainStopBtn.disabled = !state.running;
     els.accuracyDisplay.textContent = `${accuracy}%`;
@@ -3940,7 +4088,7 @@
       els.timeDisplay.textContent = `${Math.min(state.trialCount, sessionLimit.questions)}/${sessionLimit.questions}`;
     } else {
       els.timeDisplay.textContent = state.running
-        ? formatCountdown(Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000)))
+        ? formatCountdown(secondsLeftInSession())
         : formatCountdown(Math.round(sessionLimit.minutes * 60));
     }
   }
@@ -4099,6 +4247,12 @@
     }
     while (els.feedList.children.length > FEED_MAX) els.feedList.lastElementChild.remove();
     els.feedList.scrollTop = 0;
+    // Phones: the same item as a chip in the strip at the top of the session box, newest on the left.
+    const chip = el.cloneNode(true);
+    chip.querySelector('.feed-pair')?.removeAttribute('style');
+    els.mobileFeed.prepend(chip);
+    while (els.mobileFeed.children.length > FEED_MAX) els.mobileFeed.lastElementChild.remove();
+    els.mobileFeed.scrollLeft = 0;
   }
   function pushFeedAnswer(trial, outcome) {
     if (!trial) return;
@@ -4122,6 +4276,7 @@
   }
   function clearFeed() {
     els.feedList.innerHTML = '';
+    els.mobileFeed.innerHTML = '';
     els.answerFeed.classList.add('empty');
   }
 
@@ -4330,14 +4485,19 @@
     clearInterval(state.sessionTimer);
     clearInterval(state.playTimer);
     state.sessionEndsAt = Date.now() + sessionSeconds * 1000;
-    state.sessionTimer = setInterval(() => {
+    const tick = () => {
       if (!state.running) return;
       if (sessionLimit.type === 'questions') return;
-      const secondsLeft = Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000));
-      els.timeDisplay.textContent = formatCountdown(secondsLeft);
-      els.limitValue.value = formatCountdown(secondsLeft);
-      if (secondsLeft <= 0) endSession();
-    }, 200);
+      const left = secondsLeftInSession();
+      const text = formatCountdown(left);
+      // Write only when the shown second changes, so every display moves in step.
+      if (els.limitValue.value !== text) els.limitValue.value = text;
+      if (els.miniLengthValue.textContent !== text) els.miniLengthValue.textContent = text;
+      els.timeDisplay.textContent = text;
+      if (left <= 0) endSession();
+    };
+    tick();
+    state.sessionTimer = setInterval(tick, 100);
     state.playTimer = setInterval(() => {
       if (state.running) flushPlayTime();
     }, 1000);
@@ -4380,8 +4540,10 @@
     lockButtons(true);
     setFeedback('', '');
     updateCue('Session starting', 'Get ready', 'The first trial will appear immediately.');
-    updateHud();
+    // Set the session's end time before anything draws the countdown, so it starts on the full time and
+    // only ever counts down (it used to draw once from the previous end time: 3:00 > 2:59 > 3:00).
     startTimers(sessionLimit.type === 'time' ? Math.max(1, Math.round(sessionLimit.minutes * 60)) : 86400);
+    updateHud();
     nextTrial();
   }
 
@@ -4410,6 +4572,14 @@
     saveSessionLimit();
   }
 
+  function renderMiniLength() {
+    const isTime = sessionLimit.type === 'time';
+    els.miniLengthHead.textContent = state.running ? (isTime ? 'Time left' : 'Questions left') : 'Session length';
+    els.miniLengthValue.textContent = state.running
+      ? els.limitValue.value
+      : (isTime ? `${sessionLimit.minutes} min` : `${sessionLimit.questions} questions`);
+  }
+
   function renderSessionLimit() {
     const isTime = sessionLimit.type === 'time';
     els.limitTimeBtn.classList.toggle('active', isTime);
@@ -4417,12 +4587,15 @@
     if (state.running) {
       // While a session runs, the box counts down: time left, or questions left.
       els.limitValue.value = isTime
-        ? formatCountdown(Math.max(0, Math.ceil((state.sessionEndsAt - Date.now()) / 1000)))
+        ? formatCountdown(secondsLeftInSession())
         : String(Math.max(0, sessionLimit.questions - state.trialCount));
     } else if (document.activeElement !== els.limitValue) {
       els.limitValue.value = String(isTime ? sessionLimit.minutes : sessionLimit.questions);
     }
     els.limitUnit.textContent = isTime ? 'min' : 'questions';
+    els.limitUnit.classList.toggle('is-shown', isTime && !state.running);
+    els.limitValue.size = Math.max(1, String(els.limitValue.value).length);
+    renderMiniLength();
     [els.limitTimeBtn, els.limitQuestionsBtn, els.limitValue].forEach((el) => { el.disabled = state.running; });
   }
 
@@ -4551,6 +4724,7 @@
     els.stage.classList.remove('playing');
     document.body.classList.remove('session-live');
     els.feedList.scrollTop = 0;   // newest first; scroll down for the rest of the session
+    els.mobileFeed.scrollLeft = 0;
     resetTimeBar();
     clearTimeout(state.cueTimer);
     clearTimeout(state.responseTimer);
@@ -4633,6 +4807,11 @@
   els.overlay.addEventListener('click', () => { closeSettings(); closeProgress(); closeInfo(); });
   els.mainStartBtn.addEventListener('click', startSession);
   els.mainStopBtn.addEventListener('click', stopSession);
+  els.mobileSessionBtn.addEventListener('click', () => { if (state.running) stopSession(); else startSession(); els.mobileSessionBtn.blur(); });
+  function openSetup() { if (state.running) return; closeInfo(); closeProgress(); document.body.classList.add('setup-open'); }
+  function closeSetup() { document.body.classList.remove('setup-open'); readLimitInput(); renderSessionLimit(); updateHud(); }
+  els.openSetup.addEventListener('click', () => { openSetup(); els.openSetup.blur(); });
+  els.setupDone.addEventListener('click', closeSetup);
   els.levelSlider.addEventListener('input', () => setLevel(Number(els.levelSlider.value)));
   els.levelSlider.addEventListener('change', () => els.levelSlider.blur());
   els.levelDownBtn.addEventListener('click', () => { setLevel(state.level - 1); els.levelDownBtn.blur(); });
@@ -4656,6 +4835,7 @@
   els.resultsCopyBtn.addEventListener('click', copyResults);
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (document.body.classList.contains('setup-open')) { closeSetup(); return; }
     if (els.infoPanel.classList.contains('open')) { closeInfo(); return; }
     if (els.resultsOverlay.classList.contains('open')) els.resultsOverlay.classList.remove('open');
   });

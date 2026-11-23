@@ -49,7 +49,7 @@ POSNER is a practice drill built on a well-studied experiment. It is not a valid
 
 ## The screen (P2)
 
-The play area sits in the centre of the window as one compact block, with even margins above and below. The symbols and answer buttons end level with the bottom of the left-hand controls, and the block grows slightly on taller screens.
+The play area is one compact block, placed so that the session box (the framed square that says *Waiting for session to begin* and then shows the two symbols) sits in the exact centre of the screen, across and down. The controls, answer buttons and feed are positioned around it. Both side columns are the same width, with the controls sitting against the session box. The session box and answer buttons widen with the screen, up to about 1,060 px across on large monitors, and the feed sits just beyond them. On a very short screen the block moves only as far as it can without going off the edge. The symbols and answer buttons end level with the bottom of the left-hand controls, and the block grows slightly on taller screens.
 
 | Area | What it holds |
 |---|---|
@@ -63,6 +63,14 @@ The play area sits in the centre of the window as one compact block, with even m
 - START and STOP sit at the bottom of the left column, level with the answer buttons.
 - While a session runs, the Session length box counts down (time left, or questions left), and the rest of the left column dims so the symbols stay in focus.
 - On narrower windows, four answers sit in two rows of two, and below 900 pixels wide the controls move above the symbols.
+
+
+**On a phone** (900px wide or less) the screen is simplified:
+
+- The header has a white **Setup** button beside ↗ and i. It opens a full-screen sheet with every session setting in one column (Content, Pool depth, Response window, Auto scale, Session length, with the unit beside the number, e.g. 3 min); **Done** (or `Esc`) closes it. Setup can't be opened during a session.
+- The main screen is the session box, with the session length in its top-left corner (counting down during play), the time bar, one row of tall answer buttons (no key numbers) and a slimmer **START** button that turns into a red **STOP** while you play.
+- The feed runs as a strip across the top of the session box, right of the session length: one small chip per answer (the pair, the result glyph and the right answer, with a coloured underline), newest on the left, pushing older ones to the right. Once the session ends you can swipe the strip sideways through every answer.
+- Results appear in place of the session box.
 
 ## Design
 

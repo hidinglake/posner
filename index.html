@@ -1422,8 +1422,15 @@
       font-size: clamp(3rem, min(6.2vw, 15vh), 9rem);
     }
     .stage .cue-box .cue-rule {
-      font-family: var(--f-mono); font-weight: 400; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--g2);
+      font-family: var(--f-mono); font-weight: 700; font-size: clamp(13px, 1.15vw, 18px); letter-spacing: .18em; text-transform: uppercase; color: var(--ink);
     }
+    /* "Start when ready..." — the dots light up one after another, then rest. */
+    .cue-dots { display: inline-block; letter-spacing: .08em; }
+    .cue-dots i { font-style: normal; opacity: .15; animation: cue-dot 1.6s infinite; }
+    .cue-dots i:nth-child(2) { animation-delay: .25s; }
+    .cue-dots i:nth-child(3) { animation-delay: .5s; }
+    @keyframes cue-dot { 0%, 15% { opacity: .15; } 30%, 70% { opacity: 1; } 90%, 100% { opacity: .15; } }
+    @media (prefers-reduced-motion: reduce) { .cue-dots i { animation: none; opacity: 1; } }
     .stage .cue-box .cue-rule::before { content: "[ "; }
     .stage .cue-box .cue-rule::after { content: " ]"; }
     #buttonRow { border-radius: 2px; overflow: hidden; gap: 1px !important; background: var(--rule); border: 1px solid var(--rule); }
@@ -1679,6 +1686,11 @@
        corner), the time bar, the answers, and one START/STOP button. Setup opens a full-screen sheet.
        ===================================================================== */
     .setup-btn, .setup-head, .setup-done, .mini-length, .mobile-session-btn, .mobile-strip { display: none; }
+    /* Session length (desktop and phone): in Time mode the unit sits beside the number, "3 min". */
+    .controls .limit-field { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+    .controls .limit-field .limit-input { width: auto !important; field-sizing: content; min-width: 1ch; padding: 0 !important; }
+    .controls .limit-field .limit-unit { display: none; font-family: var(--f-mono); font-size: 13px; letter-spacing: .12em; color: var(--muted); }
+    .controls .limit-field .limit-unit.is-shown { display: inline; }
     @media (max-width: 900px) {
       .top-actions { gap: 8px; }
       .setup-btn {
@@ -1708,11 +1720,6 @@
       /* Setup sheet: one column, so Pool depth sits above Response window. */
       .controls { grid-template-columns: minmax(0, 1fr) !important;
         grid-template-areas: "head" "content" "pool" "diff" "autoscale" "length" "done" !important; }
-      /* Session length: the unit sits beside the number (3 min). */
-      .controls .limit-field { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
-      .controls .limit-field .limit-input { width: auto !important; field-sizing: content; min-width: 1ch; padding: 0 !important; }
-      .controls .limit-field .limit-unit { display: none; font-family: var(--f-mono); font-size: 13px; letter-spacing: .12em; color: var(--muted); }
-      .controls .limit-field .limit-unit.is-shown { display: inline; }
 
       /* Main screen fills the phone: session box grows, everything else keeps its height. */
       .main { padding: 12px !important; }
@@ -1886,7 +1893,7 @@
         <div class="cue-box" id="cueBox">
           <div class="cue-center">
             <div class="cue-label hidden" id="cueLabel"></div>
-            <div class="cue-rule" id="cueRule">Waiting for session to begin</div>
+            <div class="cue-rule" id="cueRule">Start when ready</div>
             <div class="cue-help hidden" id="cueHelp"></div>
           </div>
         </div>
@@ -3326,6 +3333,14 @@
     els.cueRule.style.fontSize = '';
     els.cueLabel.textContent = title;
     els.cueRule.textContent = ruleLabel;
+    // The idle prompt ends in three dots that light up in turn.
+    if (ruleLabel === IDLE_TEXT) {
+      const dots = document.createElement('span');
+      dots.className = 'cue-dots';
+      dots.setAttribute('aria-hidden', 'true');
+      dots.innerHTML = '<i>.</i><i>.</i><i>.</i>';
+      els.cueRule.appendChild(dots);
+    }
     els.cueRule.classList.toggle('negated', Boolean(negated));
     els.cueHelp.textContent = helpText;
   }
@@ -3812,7 +3827,7 @@
   function isMixed() { return tickedCount() >= 2; }
   // Every box may be unticked; START then stays disabled until one is ticked again.
   function hasContent() { return tickedCount() > 0; }
-  const IDLE_TEXT = 'Waiting for session to begin';
+  const IDLE_TEXT = 'Start when ready';
   const NO_CONTENT_TEXT = 'Select content to begin';
   function idleText() { return hasContent() ? IDLE_TEXT : NO_CONTENT_TEXT; }
 
@@ -4930,7 +4945,7 @@
   })();
   renderContentToggle();
 
-  // ---- Keep the session box (the framed square: "Waiting for session to begin", then the two symbols)
+  // ---- Keep the session box (the framed square: "Start when ready...", then the two symbols)
   // in the exact centre of the screen. The controls, answer buttons and feed move with it. Desktop only;
   // on a short screen it moves as far as it can without anything leaving the screen. ----
   const playWrap = document.querySelector('.play-wrap');

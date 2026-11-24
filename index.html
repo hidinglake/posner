@@ -1701,7 +1701,10 @@
     .setup-btn, .setup-head, .setup-done, .mini-length, .mobile-session-btn, .mobile-strip { display: none; }
     /* Blitz: the response window and the Questions option are greyed out; no time bar during play. */
     body.blitz-on .controls .ctl-difficulty { opacity: .35; pointer-events: none; }
-    body.blitz-on .controls .limit-opt.is-locked { opacity: .35; pointer-events: none; text-decoration: line-through; text-decoration-thickness: 1px; }
+    /* Blitz: only TIME exists, so the Questions tab goes and Time spans the box. */
+    body.blitz-on .controls .limit-opt.is-locked { display: none !important; }
+    body.blitz-on .controls .limit-toggle { grid-template-columns: 1fr !important; display: grid !important; }
+    body.blitz-on .controls .limit-opt { border-left: 0 !important; width: 100%; }
     body.blitz-on .stage .time-bar { visibility: hidden !important; }
 
     /* Session length (desktop and phone): in Time mode the unit sits beside the number, "3 min". */
@@ -4698,6 +4701,8 @@
     els.blitzMode.checked = blitz.on;
     document.body.classList.toggle('blitz-on', blitz.on);
     els.limitQuestionsBtn.classList.toggle('is-locked', blitz.on);
+    // Blitz has no response window: the stepper reads NA.
+    if (blitz.on) els.levelValue.textContent = 'NA';
     els.limitQuestionsBtn.title = blitz.on ? 'Blitz sessions are timed' : '';
     [els.levelUpBtn, els.levelDownBtn].forEach((b) => { if (blitz.on) b.disabled = true; });
     els.blitzTimes.querySelectorAll('.blitz-time').forEach((b) => {

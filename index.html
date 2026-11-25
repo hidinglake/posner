@@ -1727,6 +1727,7 @@
     .controls .limit-field .limit-input { width: auto !important; field-sizing: content; min-width: 1ch; padding: 0 !important; }
     .controls .limit-field .limit-unit { display: none; font-family: var(--f-mono); font-size: 13px; letter-spacing: .12em; color: var(--muted); }
     .controls .limit-field .limit-unit.is-shown { display: inline; }
+    .controls .limit-input::placeholder { color: var(--muted); opacity: .35; }
     @media (max-width: 900px) {
       .top-actions { gap: 8px; }
       .setup-btn {
@@ -4995,6 +4996,22 @@
   els.limitTimeBtn.addEventListener('click', () => setLimitType('time'));
   els.limitQuestionsBtn.addEventListener('click', () => setLimitType('questions'));
   els.limitValue.addEventListener('change', () => { readLimitInput(); renderSessionLimit(); updateHud(); });
+  // Tapping the number clears it, ready for a new one (the old number shows faintly as a hint).
+  // Leaving it empty puts the old number back.
+  els.limitValue.addEventListener('focus', () => {
+    if (state.running) return;
+    els.limitValue.dataset.prev = els.limitValue.value;
+    els.limitValue.placeholder = els.limitValue.value;
+    els.limitValue.value = '';
+  });
+  els.limitValue.addEventListener('blur', () => {
+    if (els.limitValue.value.trim() === '' && els.limitValue.dataset.prev !== undefined) {
+      els.limitValue.value = els.limitValue.dataset.prev;
+    }
+    els.limitValue.placeholder = '';
+    delete els.limitValue.dataset.prev;
+    els.limitValue.size = Math.max(1, String(els.limitValue.value).length);
+  });
   els.limitValue.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { els.limitValue.blur(); } });
   els.resetDefaultsBtn.addEventListener('click', resetDefaults);
   els.meaningBtn.addEventListener('click', () => respond('meaning'));

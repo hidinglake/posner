@@ -1485,6 +1485,11 @@
       font-family: var(--f-mono); font-weight: 400; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
     }
     .results-copy { padding: 9px 16px; }
+    /* "Auto-Scale: Enabled" line just above Copy results. */
+    .results-auto {
+      margin: 0 0 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+    }
+    .results-auto.is-on { color: #8af0b5; }
     .results-copy:hover, .results-close:hover { border-color: var(--ink) !important; color: var(--ink) !important; }
     .results-copy.copied { background: #1f9d58 !important; border-color: #1f9d58 !important; color: #fff !important; }
 
@@ -1836,6 +1841,8 @@
       .mobile-session-btn:disabled { opacity: .3; cursor: default; }
       .mobile-session-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       .stage .feedback { display: none !important; }
+      /* Results labels on one line (PEAK WINDOW, PEAK POOL). */
+      .results-cell > span:first-child { font-size: 9px !important; letter-spacing: .06em !important; white-space: nowrap; }
     }
   </style>
 </head>
@@ -1972,9 +1979,10 @@
             <div class="results-grid">
               <div class="results-cell"><span>Questions</span><span class="big" id="finalTrials">0</span></div>
               <div class="results-cell"><span>Mistakes</span><span class="big" id="finalMistakes">0</span></div>
-              <div class="results-cell"><span id="finalLevelLabel">Window</span><span class="big" id="finalLevel">2.0s</span></div>
-              <div class="results-cell"><span>Pool</span><span class="big" id="finalPool">1</span></div>
+              <div class="results-cell"><span id="finalLevelLabel">Peak window</span><span class="big" id="finalLevel">2.0s</span></div>
+              <div class="results-cell"><span>Peak pool</span><span class="big" id="finalPool">1</span></div>
             </div>
+            <div class="results-auto" id="finalAuto">Auto-Scale: Enabled</div>
             <button class="results-copy" id="resultsCopyBtn" type="button">Copy results</button>
           </div>
         </div>
@@ -2493,6 +2501,7 @@
     resultsOverlay: document.getElementById('resultsOverlay'),
     resultsSummary: document.getElementById('resultsSummary'),
     finalLevel: document.getElementById('finalLevel'),
+    finalAuto: document.getElementById('finalAuto'),
     finalLevelLabel: document.getElementById('finalLevelLabel'),
     blitzMode: document.getElementById('blitzMode'),
     blitzTimes: document.getElementById('blitzTimes'),
@@ -4133,7 +4142,13 @@
     return 'Multi+';
   }
 
+  function trackPeaks() {
+    if (state.peakLevel == null || state.level > state.peakLevel) state.peakLevel = state.level;
+    if (state.peakPool == null || state.pool > state.peakPool) state.peakPool = state.pool;
+  }
+
   function updateHud() {
+    if (state.running) trackPeaks();
     const settings = readSettings();
     const total = state.correctCount + state.wrongCount;
     const accuracy = total ? Math.round((state.correctCount / total) * 100) : 0;
@@ -4620,6 +4635,9 @@
     state.level = clampLevel(settings.startingLevel);
     state.sessionStartLevel = state.level;
     state.sessionStartPool = state.pool;
+    // Peaks: the shortest window and deepest pool reached during the session.
+    state.peakLevel = state.level;
+    state.peakPool = state.pool;
     state.trialCount = 0;
     state.correctCount = 0;
     state.wrongCount = 0;
@@ -4790,32 +4808,21 @@
   }
 
   function buildResultsText({ manual, total, accuracy }) {
-    const settings = readSettings();
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
     const startLevel = clampLevel(state.sessionStartLevel ?? state.level);
     const endLevel = clampLevel(state.level);
     const startPool = clampLevel(state.sessionStartPool ?? state.pool);
     const endPool = clampLevel(state.pool);
-    const limit = sessionLimit.type === 'questions'
-      ? `${sessionLimit.questions} questions`
-      : `${sessionMinutes()} min${blitz.on ? ' (Blitz)' : ''}`;
-    const extras = [];
-    if (settings.negationMode) extras.push('Negation');
-    if (settings.nBackMode) extras.push(`N-back (n=${settings.nBackSteps}${settings.variableNBack ? ', variable' : ''})`);
+    // Forum format:
+    //   15min POSNER Session / Accuracy / Questions (Mistakes) / Response window / Pool depth / Auto scale
+    const span = (a, b, fmt) => (a === b ? fmt(b) : `${fmt(a)} → ${fmt(b)}`);
+    const length = sessionLimit.type === 'questions' ? `${sessionLimit.questions} question` : `${sessionMinutes()}min`;
     const lines = [
-      `POSNER — ${date}${manual ? ' (stopped early)' : ''}`,
-      `Accuracy: ${accuracy}% (${state.correctCount}/${total} correct)`,
-      `Questions: ${total} | Mistakes: ${state.wrongCount}`,
-      blitz.on
-        ? `Blitz: no response window | ${(total / Math.max(1 / 60, (Date.now() - (state.sessionStartAt || Date.now())) / 60000)).toFixed(1)} answers per minute`
-        : startLevel === endLevel
-          ? `Response window: ${fmtWindow(endLevel)}`
-          : `Response window: ${fmtWindow(startLevel)} → ${fmtWindow(endLevel)}`,
-      `Pool depth: ${startPool === endPool ? endPool : `${startPool} → ${endPool}`} (${getTrialModeLabel(settings)}${extras.length ? ` + ${extras.join(', ')}` : ''})`,
-      `Auto scale: ${state.autoScale ? 'on' : 'off'}`,
-      `Session: ${limit} | Time played: ${formatDuration(Date.now() - (state.sessionStartAt || Date.now()))}`,
+      `${length} ${blitz.on ? 'Blitz ' : ''}POSNER Session${manual ? ' (stopped early)' : ''}`,
+      `Accuracy: ${accuracy}%`,
+      `Questions: ${total} (Mistakes: ${state.wrongCount})`,
+      `Response window: ${blitz.on ? 'NA' : span(startLevel, endLevel, fmtWindow)}`,
+      `Pool depth: ${span(startPool, endPool, String)}`,
+      `Auto scale: ${state.autoScale ? 'Enabled' : 'Disabled'}`,
     ];
     return lines.join('\n');
   }
@@ -4873,21 +4880,24 @@
 
     const total = state.correctCount + state.wrongCount;
     const accuracy = total ? Math.round((state.correctCount / total) * 100) : 0;
+    trackPeaks();
     if (blitz.on) {
       // Blitz: show the pace instead of a window.
       const minutes = Math.max(1 / 60, (Date.now() - (state.sessionStartAt || Date.now())) / 60000);
       els.finalLevelLabel.textContent = 'Per min';
       els.finalLevel.textContent = (total / minutes).toFixed(1);
     } else {
-      els.finalLevelLabel.textContent = 'Window';
-      els.finalLevel.textContent = fmtWindow(state.level);
+      els.finalLevelLabel.textContent = 'Peak window';
+      els.finalLevel.textContent = fmtWindow(state.peakLevel ?? state.level);
     }
-    els.finalPool.textContent = String(state.pool);
+    els.finalPool.textContent = String(state.peakPool ?? state.pool);
     els.finalAccuracy.textContent = `${accuracy}%`;
     els.finalTrials.textContent = total;
     els.finalMistakes.textContent = state.wrongCount;
     els.resultsTitle.textContent = manual ? 'Session stopped' : 'Session complete';
     els.resultsSummary.textContent = `${state.correctCount} correct out of ${total}.`;
+    els.finalAuto.textContent = `Auto-Scale: ${state.autoScale ? 'Enabled' : 'Disabled'}`;
+    els.finalAuto.classList.toggle('is-on', Boolean(state.autoScale));
     state.lastResultsText = buildResultsText({ manual, total, accuracy });
     els.resultsCopyBtn.textContent = 'Copy results';
     els.resultsCopyBtn.classList.remove('copied');

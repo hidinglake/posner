@@ -49,7 +49,7 @@ POSNER is a practice drill built on a well-studied experiment. It is not a valid
 
 ## The screen (P2)
 
-The play area is one compact block, placed so that the session box (the framed square that says *Waiting for session to begin* and then shows the two symbols) sits in the exact centre of the screen, across and down. The controls, answer buttons and feed are positioned around it. Both side columns are the same width, with the controls sitting against the session box. The session box and answer buttons widen with the screen, up to about 1,060 px across on large monitors, and the feed sits just beyond them. On a very short screen the block moves only as far as it can without going off the edge. The symbols and answer buttons end level with the bottom of the left-hand controls, and the block grows slightly on taller screens.
+The play area is one compact block, placed so that the session box (the framed square that says *Start when ready...* and then shows the two symbols) sits in the exact centre of the screen, across and down. The controls, answer buttons and feed are positioned around it. Both side columns are the same width, with the controls sitting against the session box. The session box and answer buttons widen with the screen, up to about 1,060 px across on large monitors, and the feed sits just beyond them. On a very short screen the block moves only as far as it can without going off the edge. The symbols and answer buttons end level with the bottom of the left-hand controls, and the block grows slightly on taller screens.
 
 | Area | What it holds |
 |---|---|
@@ -156,6 +156,15 @@ The two are independent: any window works with any pool. New players start at 2.
 
 New or unfamiliar items need time to recognise. If the time limit shrinks at the same moment new items arrive, players guess instead of learning, and a miss could mean either "too slow" or "didn't know it". Posner's own task used letters everyone already knew, so slower answers reflected deeper processing, not gaps in knowledge. Keeping the two controls apart keeps that distinction.
 
+### Blitz
+
+The **Blitz** switch sits above Response window. With it on:
+
+- There is no response window: each round waits for your answer, so nothing is ever "too slow". The Response window box is greyed out and reads **NA**, and the time bar is hidden.
+- Sessions are timed only, in three fixed lengths: **1 min**, **5 min** or **10 min** (picked in the Session length box, remembered between visits). The QUESTIONS tab disappears, leaving TIME across the box. Turning Blitz off brings back your own session length.
+- The score is how many you answer in the time: the results show **Per min** (answers per minute) in place of Window, and Copy results starts `10min Blitz POSNER Session`.
+- Auto scale, if on, changes only the pool depth (deeper after a strong run, shallower after three misses in a row).
+
 ### Auto scale
 
 With the **Auto scale** switch on, both controls adjust to how you are doing during a session:
@@ -174,17 +183,18 @@ With the switch off, the window and pool stay exactly where you set them. The �
 - Set a session by **TIME** (minutes) or **QUESTIONS** (a count), then press **START**. **STOP** ends early.
 - The Time / Questions box counts down during the session. Your accuracy appears on the results screen at the end.
 - The feed beside the game shows your last 15 answers, newest first. It keeps every answer of the session: once the session ends or you press STOP, a scroll bar appears so you can scroll back through all of them. On a phone the feed sits under the game and the page itself scrolls. Starting a new session clears it.
-- At the end you see accuracy, questions, mistakes, and the final response window and pool depth. **Copy results** puts a plain-text summary on your clipboard:
+- At the end you see accuracy, questions, mistakes, the **peak window** (shortest response window reached) and **peak pool** (deepest pool depth reached), and whether Auto-Scale was enabled (shown just above Copy results). **Copy results** puts a plain-text summary on your clipboard, ready to post:
 
 ```
-POSNER — 2026-11-22 19:52
-Accuracy: 90% (36/40 correct)
-Questions: 40 | Mistakes: 4
-Response window: 3.0s → 2.0s
-Pool depth: 1 → 3 (Numbers 1–20 + Elements 1–36, mixed pairs)
-Auto scale: on
-Session: 40 questions | Time played: 0:25
+15min POSNER Session
+Accuracy: 79%
+Questions: 579 (Mistakes: 124)
+Response window: 3.5s → 1.5s
+Pool depth: 4 → 8
+Auto scale: Enabled
 ```
+
+  A session set by questions starts `50 question POSNER Session`; one stopped early adds `(stopped early)`. A Blitz session reads `10min Blitz POSNER Session` and shows `Response window: NA`. Values that didn't change show once (`Pool depth: 4`).
 
 ## Keyboard
 

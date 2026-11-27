@@ -133,11 +133,11 @@ The feed always shows the right answer for each pair.
 
 Speed and breadth are set separately, so you can train one without the other getting in the way.
 
-**Response window** is how long you have to answer: ten steps, half a second apart, from 5.0 s down to 0.5 s. ‹ shortens it and › lengthens it.
+**Response window** is how long you have to answer, from 5.0 s down to 0.5 s in **0.1 s steps**. ‹ shortens it and › lengthens it; press and hold an arrow to move quickly.
 
 **Pool depth** is how many items are in play: ten steps. ‹ makes it shallower and › makes it deeper. Under it, all three ranges are always listed (Numbers, Elements, Greek); sets you haven't ticked are dimmed, so the box never changes size.
 
-| Step | Response window | Pool depth: numbers | Pool depth: elements | Pool depth: Greek |
+| Step | Window (half-second marks) | Pool depth: numbers | Pool depth: elements | Pool depth: Greek |
 |---|---|---|---|---|
 | 1 | 5.0 s | 1 to 12 | first 12 (up to Magnesium) | α to ζ (6) |
 | 2 | 4.5 s | 1 to 16 | first 24 (up to Chromium) | α to θ (8) |
@@ -150,7 +150,7 @@ Speed and breadth are set separately, so you can train one without the other get
 | 9 | 1.0 s | 1 to 46 | first 106 (up to Seaborgium) | α to χ (21) |
 | 10 | 0.5 s | 1 to 50 | all 118 | α to ω (all 23) |
 
-The two are independent: any window works with any pool. New players start at 2.0 s (step 7) and pool depth 1. Settings saved under the older six-step scales are moved over once: the window keeps its seconds and the pool moves to the nearest range.
+The two are independent: any window works with any pool. The window column shows the half-second marks that auto scale compares with pool depth; any 0.1 s value in between can be set by hand. New players start at 2.0 s and pool depth 1. Settings saved under older scales are moved over once: the window keeps its seconds and the pool moves to the nearest range.
 
 ### Why they are separate
 
@@ -170,9 +170,10 @@ The **Blitz** switch sits above Response window. With it on:
 With the **Auto scale** switch on, both controls adjust to how you are doing during a session:
 
 - **A strong run** (16 answers since the last change, with at most 2 mistakes):
-    - if your speed is ahead of your pool (the window step is higher than the pool depth), the pool gets one step deeper and the window one step longer, so new items arrive with more time;
+    - if your speed is ahead of your pool (the window's step in the table is higher than the pool depth), the pool gets one step deeper and the window one step longer, so new items arrive with more time;
     - otherwise, the window gets one step shorter.
 - **Three misses in a row:** the window gets one step longer. If it is already at its longest (5.0 s), the pool gets one step shallower instead.
+- **Step size:** auto scale moves the window by **0.5 s** while it is above 1.5 s (2.5 s → 2.0 s → 1.5 s), then by **0.1 s** at 1.5 s and below (1.5 s → 1.4 s → 1.3 s …). Giving time back works the same way in reverse (1.3 s → 1.4 s → 1.5 s → 2.0 s).
 
 So speed leads and depth follows, in a sawtooth: faster, then deeper with a little more time, then faster again. Every change is noted in the feed (for example `FASTER → 1.5S` or `DEEPER → POOL 3 · 2.5S`). Wherever a session ends becomes the starting point for the next one.
 
